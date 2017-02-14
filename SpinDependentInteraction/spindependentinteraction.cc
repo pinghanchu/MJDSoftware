@@ -7,15 +7,19 @@
 // mass still with flat surface
 // 2015.3.28
 // add other exotic forces
-#include<iostream>
-#include<iomanip>
-#include<fstream>
-#include<time.h>
-#include<math.h>
-#include<cmath>
-#include<vector>
-#include<cstdlib>
-#include<ctime>
+#include <iostream>
+#include <sstream>
+#include <fstream>
+#include <iomanip>
+#include <time.h>
+#include <math.h>
+#include <cmath>
+#include <vector>
+#include <cstdlib>
+#include <ctime>
+#include <string>
+#include <bitset>
+
 using namespace std;
 
 //Input Parameters:******************************************************************************
@@ -411,8 +415,7 @@ long double f16(long double x[], long double forcelength){
   return dftot;
 }
 
-long double integration(long double range){
-
+long double integration(long double range, int index_f){
 
   int n = 6;
 
@@ -531,12 +534,35 @@ long double integration(long double range){
     //cout << x[3] << " "  << x[4] << " " << x[5]  << " " << cos(x[5]) << " " << sin(x[5]) <<endl;
     in1 = insidecylinder(low1,up1,point1,3);
     in2 = inside(low2,up2,point2,3);
-    //long double xx = f(x,range);
+    long double xx = 0;
     if(in1>0 && in2>0){
-      long double xx = f4(x,range);
+      if(index_f ==2){
+	xx = f2(x,range);
+      }else if(index_f == 3){
+	xx = f3(x,range);
+      }else if(index_f == 4){
+	xx = f4(x,range);
+      }else if(index_f == 6){
+	xx = f6(x,range);
+      }else if(index_f == 8){
+	xx = f8(x,range);
+      }else if(index_f == 9){
+	xx = f9(x,range);
+      }else if(index_f == 11){
+	xx = f11(x,range);
+      }else if(index_f == 12){
+	xx = f12(x,range);
+      }else if(index_f == 14){
+	xx = f14(x,range);
+      }else if(index_f == 15){
+	xx = f15(x,range);
+      }else if(index_f == 16){
+	xx = f16(x,range);
+      }else{
+	cout << "No Interaction!" << endl;
+      }
       dftot = dftot + xx;
       count = count + 1;
-      //cout << "count="<<count << ", dftot=" << dftot << endl;
     }
   }
 
@@ -549,24 +575,26 @@ long double integration(long double range){
 //Main****************************************************************************************************
 int main(int argc, char** argv)
 {
-  if(argc != 2) {
-    cout << "Usage: " << argv[0] << "" << endl;
+  if(argc != 3) {
+    cout << "Usage: " << argv[0] << "[Interaction] [position]" << endl;
     return 1;
   }
-
+  int index_f = atoi(argv[1]);
+  int position = atoi(argv[2]);
   long double range = 0.;
   long double x= 0.;
   long double y= 0.1;
   ofstream fout1;
   fout1.open("potential.txt");
-    ofstream fout2;
-    //fout2.open("./data/coupling.4.1.opt.txt");
-  fout2.open("./data/coupling.4.3.txt");
-
+  ofstream fout2;
+  //string filename = Form("./data/coupling_%d_%d.txt",index_f,position);
+  string filename = "coupling.txt";
+  fout2.open(filename);
+    
   for(int i = 0; i< 6;i++){
     for(int j = 1 ; j <=9;j++){
       range = 0.00001*pow(10,i)*j*pow(unit,1); // force interaction length (m)
-      x=integration(range);
+      x=integration(range,index_f);
       y=abs(freqshift*hbar/x);
       fout1 << range << " " << x << endl;
       fout2 << range << " " << log10(y) << endl;

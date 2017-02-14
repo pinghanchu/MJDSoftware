@@ -1,15 +1,57 @@
 plot.o: plot.cc \
- /project/projectdirs/majorana/software/sl62/mjsw/mjsw201411PCProd/GAT/BaseClasses/GATDataSet.hh \
- /global/common/pdsf_sl6/usg/software/gcc/4.8.2/include/c++/4.8.2/vector \
- /global/common/pdsf_sl6/usg/software/gcc/4.8.2/include/c++/4.8.2/bits/stl_algobase.h \
+ /global/project/projectdirs/majorana/software/sl64/root/root-6.08.04/include/TFile.h \
+ /global/common/pdsf_sl6/usg/software/gcc/4.8.2/include/c++/4.8.2/atomic \
+ /global/common/pdsf_sl6/usg/software/gcc/4.8.2/include/c++/4.8.2/bits/atomic_base.h \
  /global/common/pdsf_sl6/usg/software/gcc/4.8.2/include/c++/4.8.2/x86_64-redhat-linux7E/bits/c++config.h \
  /global/common/pdsf_sl6/usg/software/gcc/4.8.2/include/c++/4.8.2/x86_64-redhat-linux7E/bits/os_defines.h \
  /usr/include/features.h /usr/include/sys/cdefs.h \
  /usr/include/bits/wordsize.h /usr/include/gnu/stubs.h \
  /usr/include/gnu/stubs-64.h \
  /global/common/pdsf_sl6/usg/software/gcc/4.8.2/include/c++/4.8.2/x86_64-redhat-linux7E/bits/cpu_defines.h \
- /global/common/pdsf_sl6/usg/software/gcc/4.8.2/include/c++/4.8.2/bits/functexcept.h \
+ /global/common/pdsf_sl6/usg/software/gcc/4.8.2/lib/gcc/x86_64-redhat-linux7E/4.8.2/include/stdbool.h \
+ /global/common/pdsf_sl6/usg/software/gcc/4.8.2/lib/gcc/x86_64-redhat-linux7E/4.8.2/include/stdint.h \
+ /usr/include/stdint.h /usr/include/bits/wchar.h \
+ /global/common/pdsf_sl6/usg/software/gcc/4.8.2/include/c++/4.8.2/bits/atomic_lockfree_defines.h \
+ /global/project/projectdirs/majorana/software/sl64/root/root-6.08.04/include/TDirectoryFile.h \
+ /global/project/projectdirs/majorana/software/sl64/root/root-6.08.04/include/TDirectory.h \
+ /global/project/projectdirs/majorana/software/sl64/root/root-6.08.04/include/TBuffer.h \
+ /global/project/projectdirs/majorana/software/sl64/root/root-6.08.04/include/TObject.h \
+ /global/project/projectdirs/majorana/software/sl64/root/root-6.08.04/include/RConfigure.h \
+ /global/project/projectdirs/majorana/software/sl64/root/root-6.08.04/include/Riosfwd.h \
+ /global/common/pdsf_sl6/usg/software/gcc/4.8.2/include/c++/4.8.2/iosfwd \
+ /global/common/pdsf_sl6/usg/software/gcc/4.8.2/include/c++/4.8.2/bits/stringfwd.h \
+ /global/common/pdsf_sl6/usg/software/gcc/4.8.2/include/c++/4.8.2/bits/memoryfwd.h \
+ /global/common/pdsf_sl6/usg/software/gcc/4.8.2/include/c++/4.8.2/bits/postypes.h \
+ /global/common/pdsf_sl6/usg/software/gcc/4.8.2/include/c++/4.8.2/cwchar \
+ /usr/include/wchar.h /usr/include/stdio.h \
+ /global/common/pdsf_sl6/usg/software/gcc/4.8.2/lib/gcc/x86_64-redhat-linux7E/4.8.2/include/stdarg.h \
+ /global/common/pdsf_sl6/usg/software/gcc/4.8.2/lib/gcc/x86_64-redhat-linux7E/4.8.2/include/stddef.h \
+ /usr/include/xlocale.h \
+ /global/project/projectdirs/majorana/software/sl64/root/root-6.08.04/include/Rtypes.h \
+ /global/project/projectdirs/majorana/software/sl64/root/root-6.08.04/include/RtypesCore.h \
+ /global/project/projectdirs/majorana/software/sl64/root/root-6.08.04/include/RConfig.h \
+ /global/project/projectdirs/majorana/software/sl64/root/root-6.08.04/include/RVersion.h \
+ /global/project/projectdirs/majorana/software/sl64/root/root-6.08.04/include/DllImport.h \
+ /global/project/projectdirs/majorana/software/sl64/root/root-6.08.04/include/Rtypeinfo.h \
+ /global/common/pdsf_sl6/usg/software/gcc/4.8.2/include/c++/4.8.2/typeinfo \
+ /global/common/pdsf_sl6/usg/software/gcc/4.8.2/include/c++/4.8.2/exception \
+ /global/common/pdsf_sl6/usg/software/gcc/4.8.2/include/c++/4.8.2/bits/exception_ptr.h \
  /global/common/pdsf_sl6/usg/software/gcc/4.8.2/include/c++/4.8.2/bits/exception_defines.h \
+ /global/common/pdsf_sl6/usg/software/gcc/4.8.2/include/c++/4.8.2/bits/nested_exception.h \
+ /global/common/pdsf_sl6/usg/software/gcc/4.8.2/include/c++/4.8.2/bits/hash_bytes.h \
+ /usr/include/bits/types.h /usr/include/bits/typesizes.h \
+ /usr/include/libio.h /usr/include/_G_config.h \
+ /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h \
+ /usr/include/bits/stdio.h /usr/include/string.h \
+ /global/project/projectdirs/majorana/software/sl64/root/root-6.08.04/include/snprintf.h \
+ /global/project/projectdirs/majorana/software/sl64/root/root-6.08.04/include/strlcpy.h \
+ /usr/include/unistd.h /usr/include/bits/posix_opt.h \
+ /usr/include/bits/environments.h /usr/include/bits/confname.h \
+ /usr/include/getopt.h \
+ /global/project/projectdirs/majorana/software/sl64/root/root-6.08.04/include/TGenericClassInfo.h \
+ /global/common/pdsf_sl6/usg/software/gcc/4.8.2/include/c++/4.8.2/vector \
+ /global/common/pdsf_sl6/usg/software/gcc/4.8.2/include/c++/4.8.2/bits/stl_algobase.h \
+ /global/common/pdsf_sl6/usg/software/gcc/4.8.2/include/c++/4.8.2/bits/functexcept.h \
  /global/common/pdsf_sl6/usg/software/gcc/4.8.2/include/c++/4.8.2/bits/cpp_type_traits.h \
  /global/common/pdsf_sl6/usg/software/gcc/4.8.2/include/c++/4.8.2/ext/type_traits.h \
  /global/common/pdsf_sl6/usg/software/gcc/4.8.2/include/c++/4.8.2/ext/numeric_traits.h \
@@ -25,11 +67,6 @@ plot.o: plot.cc \
  /global/common/pdsf_sl6/usg/software/gcc/4.8.2/include/c++/4.8.2/x86_64-redhat-linux7E/bits/c++allocator.h \
  /global/common/pdsf_sl6/usg/software/gcc/4.8.2/include/c++/4.8.2/ext/new_allocator.h \
  /global/common/pdsf_sl6/usg/software/gcc/4.8.2/include/c++/4.8.2/new \
- /global/common/pdsf_sl6/usg/software/gcc/4.8.2/include/c++/4.8.2/exception \
- /global/common/pdsf_sl6/usg/software/gcc/4.8.2/include/c++/4.8.2/bits/atomic_lockfree_defines.h \
- /global/common/pdsf_sl6/usg/software/gcc/4.8.2/include/c++/4.8.2/bits/exception_ptr.h \
- /global/common/pdsf_sl6/usg/software/gcc/4.8.2/include/c++/4.8.2/bits/nested_exception.h \
- /global/common/pdsf_sl6/usg/software/gcc/4.8.2/include/c++/4.8.2/bits/memoryfwd.h \
  /global/common/pdsf_sl6/usg/software/gcc/4.8.2/include/c++/4.8.2/bits/stl_construct.h \
  /global/common/pdsf_sl6/usg/software/gcc/4.8.2/include/c++/4.8.2/ext/alloc_traits.h \
  /global/common/pdsf_sl6/usg/software/gcc/4.8.2/include/c++/4.8.2/bits/alloc_traits.h \
@@ -39,31 +76,19 @@ plot.o: plot.cc \
  /global/common/pdsf_sl6/usg/software/gcc/4.8.2/include/c++/4.8.2/initializer_list \
  /global/common/pdsf_sl6/usg/software/gcc/4.8.2/include/c++/4.8.2/bits/stl_bvector.h \
  /global/common/pdsf_sl6/usg/software/gcc/4.8.2/include/c++/4.8.2/bits/functional_hash.h \
- /global/common/pdsf_sl6/usg/software/gcc/4.8.2/include/c++/4.8.2/bits/hash_bytes.h \
  /global/common/pdsf_sl6/usg/software/gcc/4.8.2/include/c++/4.8.2/bits/range_access.h \
  /global/common/pdsf_sl6/usg/software/gcc/4.8.2/include/c++/4.8.2/bits/vector.tcc \
+ /global/project/projectdirs/majorana/software/sl64/root/root-6.08.04/include/TSchemaHelper.h \
  /global/common/pdsf_sl6/usg/software/gcc/4.8.2/include/c++/4.8.2/string \
- /global/common/pdsf_sl6/usg/software/gcc/4.8.2/include/c++/4.8.2/bits/stringfwd.h \
  /global/common/pdsf_sl6/usg/software/gcc/4.8.2/include/c++/4.8.2/bits/char_traits.h \
- /global/common/pdsf_sl6/usg/software/gcc/4.8.2/include/c++/4.8.2/bits/postypes.h \
- /global/common/pdsf_sl6/usg/software/gcc/4.8.2/include/c++/4.8.2/cwchar \
- /usr/include/wchar.h /usr/include/stdio.h \
- /global/common/pdsf_sl6/usg/software/gcc/4.8.2/lib/gcc/x86_64-redhat-linux7E/4.8.2/include/stdarg.h \
- /usr/include/bits/wchar.h \
- /global/common/pdsf_sl6/usg/software/gcc/4.8.2/lib/gcc/x86_64-redhat-linux7E/4.8.2/include/stddef.h \
- /usr/include/xlocale.h \
  /global/common/pdsf_sl6/usg/software/gcc/4.8.2/include/c++/4.8.2/cstdint \
- /global/common/pdsf_sl6/usg/software/gcc/4.8.2/lib/gcc/x86_64-redhat-linux7E/4.8.2/include/stdint.h \
- /usr/include/stdint.h \
  /global/common/pdsf_sl6/usg/software/gcc/4.8.2/include/c++/4.8.2/bits/localefwd.h \
  /global/common/pdsf_sl6/usg/software/gcc/4.8.2/include/c++/4.8.2/x86_64-redhat-linux7E/bits/c++locale.h \
  /global/common/pdsf_sl6/usg/software/gcc/4.8.2/include/c++/4.8.2/clocale \
  /usr/include/locale.h /usr/include/bits/locale.h \
- /global/common/pdsf_sl6/usg/software/gcc/4.8.2/include/c++/4.8.2/iosfwd \
  /global/common/pdsf_sl6/usg/software/gcc/4.8.2/include/c++/4.8.2/cctype \
- /usr/include/ctype.h /usr/include/bits/types.h \
- /usr/include/bits/typesizes.h /usr/include/endian.h \
- /usr/include/bits/endian.h /usr/include/bits/byteswap.h \
+ /usr/include/ctype.h /usr/include/endian.h /usr/include/bits/endian.h \
+ /usr/include/bits/byteswap.h \
  /global/common/pdsf_sl6/usg/software/gcc/4.8.2/include/c++/4.8.2/bits/ostream_insert.h \
  /global/common/pdsf_sl6/usg/software/gcc/4.8.2/include/c++/4.8.2/bits/cxxabi_forced.h \
  /global/common/pdsf_sl6/usg/software/gcc/4.8.2/include/c++/4.8.2/bits/stl_function.h \
@@ -84,40 +109,13 @@ plot.o: plot.cc \
  /usr/include/bits/sigset.h /usr/include/sys/sysmacros.h \
  /usr/include/alloca.h \
  /global/common/pdsf_sl6/usg/software/gcc/4.8.2/include/c++/4.8.2/cstdio \
- /usr/include/libio.h /usr/include/_G_config.h \
- /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h \
- /usr/include/bits/stdio.h \
  /global/common/pdsf_sl6/usg/software/gcc/4.8.2/include/c++/4.8.2/cerrno \
  /usr/include/errno.h /usr/include/bits/errno.h \
  /usr/include/linux/errno.h /usr/include/asm/errno.h \
  /usr/include/asm-generic/errno.h /usr/include/asm-generic/errno-base.h \
  /global/common/pdsf_sl6/usg/software/gcc/4.8.2/include/c++/4.8.2/bits/basic_string.tcc \
- /global/project/projectdirs/majorana/software/sl64/root/root-6.08.04/include/TObject.h \
- /global/project/projectdirs/majorana/software/sl64/root/root-6.08.04/include/RConfigure.h \
- /global/project/projectdirs/majorana/software/sl64/root/root-6.08.04/include/Riosfwd.h \
- /global/project/projectdirs/majorana/software/sl64/root/root-6.08.04/include/Rtypes.h \
- /global/project/projectdirs/majorana/software/sl64/root/root-6.08.04/include/RtypesCore.h \
- /global/project/projectdirs/majorana/software/sl64/root/root-6.08.04/include/RConfig.h \
- /global/project/projectdirs/majorana/software/sl64/root/root-6.08.04/include/RVersion.h \
- /global/project/projectdirs/majorana/software/sl64/root/root-6.08.04/include/DllImport.h \
- /global/project/projectdirs/majorana/software/sl64/root/root-6.08.04/include/Rtypeinfo.h \
- /global/common/pdsf_sl6/usg/software/gcc/4.8.2/include/c++/4.8.2/typeinfo \
- /usr/include/string.h \
- /global/project/projectdirs/majorana/software/sl64/root/root-6.08.04/include/snprintf.h \
- /global/project/projectdirs/majorana/software/sl64/root/root-6.08.04/include/strlcpy.h \
- /usr/include/unistd.h /usr/include/bits/posix_opt.h \
- /usr/include/bits/environments.h /usr/include/bits/confname.h \
- /usr/include/getopt.h \
- /global/common/pdsf_sl6/usg/software/gcc/4.8.2/include/c++/4.8.2/atomic \
- /global/common/pdsf_sl6/usg/software/gcc/4.8.2/include/c++/4.8.2/bits/atomic_base.h \
- /global/common/pdsf_sl6/usg/software/gcc/4.8.2/lib/gcc/x86_64-redhat-linux7E/4.8.2/include/stdbool.h \
- /global/project/projectdirs/majorana/software/sl64/root/root-6.08.04/include/TGenericClassInfo.h \
- /global/project/projectdirs/majorana/software/sl64/root/root-6.08.04/include/TSchemaHelper.h \
  /global/project/projectdirs/majorana/software/sl64/root/root-6.08.04/include/TStorage.h \
  /global/project/projectdirs/majorana/software/sl64/root/root-6.08.04/include/TVersionCheck.h \
- /global/project/projectdirs/majorana/software/sl64/root/root-6.08.04/include/TChain.h \
- /global/project/projectdirs/majorana/software/sl64/root/root-6.08.04/include/TTree.h \
- /global/project/projectdirs/majorana/software/sl64/root/root-6.08.04/include/TBranch.h \
  /global/project/projectdirs/majorana/software/sl64/root/root-6.08.04/include/TNamed.h \
  /global/project/projectdirs/majorana/software/sl64/root/root-6.08.04/include/TString.h \
  /global/project/projectdirs/majorana/software/sl64/root/root-6.08.04/include/TMathBase.h \
@@ -188,10 +186,18 @@ plot.o: plot.cc \
  /global/common/pdsf_sl6/usg/software/gcc/4.8.2/include/c++/4.8.2/bits/codecvt.h \
  /global/common/pdsf_sl6/usg/software/gcc/4.8.2/include/c++/4.8.2/bits/locale_facets_nonio.tcc \
  /global/project/projectdirs/majorana/software/sl64/root/root-6.08.04/include/libcpp_string_view.h \
- /global/project/projectdirs/majorana/software/sl64/root/root-6.08.04/include/TObjArray.h \
+ /global/project/projectdirs/majorana/software/sl64/root/root-6.08.04/include/TList.h \
  /global/project/projectdirs/majorana/software/sl64/root/root-6.08.04/include/TSeqCollection.h \
  /global/project/projectdirs/majorana/software/sl64/root/root-6.08.04/include/TCollection.h \
  /global/project/projectdirs/majorana/software/sl64/root/root-6.08.04/include/TIterator.h \
+ /global/project/projectdirs/majorana/software/sl64/root/root-6.08.04/include/TDatime.h \
+ /global/project/projectdirs/majorana/software/sl64/root/root-6.08.04/include/TUUID.h \
+ /global/project/projectdirs/majorana/software/sl64/root/root-6.08.04/include/TMap.h \
+ /global/project/projectdirs/majorana/software/sl64/root/root-6.08.04/include/THashTable.h \
+ /global/project/projectdirs/majorana/software/sl64/root/root-6.08.04/include/TUrl.h \
+ /global/project/projectdirs/majorana/software/sl64/root/root-6.08.04/include/TTree.h \
+ /global/project/projectdirs/majorana/software/sl64/root/root-6.08.04/include/TBranch.h \
+ /global/project/projectdirs/majorana/software/sl64/root/root-6.08.04/include/TObjArray.h \
  /global/project/projectdirs/majorana/software/sl64/root/root-6.08.04/include/TAttFill.h \
  /global/project/projectdirs/majorana/software/sl64/root/root-6.08.04/include/TDataType.h \
  /global/project/projectdirs/majorana/software/sl64/root/root-6.08.04/include/TDictionary.h \
@@ -201,7 +207,6 @@ plot.o: plot.cc \
  /global/project/projectdirs/majorana/software/sl64/root/root-6.08.04/include/TArrayD.h \
  /global/project/projectdirs/majorana/software/sl64/root/root-6.08.04/include/TArray.h \
  /global/project/projectdirs/majorana/software/sl64/root/root-6.08.04/include/TArrayI.h \
- /global/project/projectdirs/majorana/software/sl64/root/root-6.08.04/include/TBuffer.h \
  /global/project/projectdirs/majorana/software/sl64/root/root-6.08.04/include/TClass.h \
  /global/project/projectdirs/majorana/software/sl64/root/root-6.08.04/include/TObjString.h \
  /global/common/pdsf_sl6/usg/software/gcc/4.8.2/include/c++/4.8.2/map \
@@ -217,16 +222,7 @@ plot.o: plot.cc \
  /global/common/pdsf_sl6/usg/software/gcc/4.8.2/include/c++/4.8.2/bits/unordered_set.h \
  /global/project/projectdirs/majorana/software/sl64/root/root-6.08.04/include/ThreadLocalStorage.h \
  /global/project/projectdirs/majorana/software/sl64/root/root-6.08.04/include/TVirtualTreePlayer.h \
- /global/project/projectdirs/majorana/software/sl64/root/root-6.08.04/include/TFile.h \
- /global/project/projectdirs/majorana/software/sl64/root/root-6.08.04/include/TDirectoryFile.h \
- /global/project/projectdirs/majorana/software/sl64/root/root-6.08.04/include/TDirectory.h \
- /global/project/projectdirs/majorana/software/sl64/root/root-6.08.04/include/TList.h \
- /global/project/projectdirs/majorana/software/sl64/root/root-6.08.04/include/TDatime.h \
- /global/project/projectdirs/majorana/software/sl64/root/root-6.08.04/include/TUUID.h \
- /global/project/projectdirs/majorana/software/sl64/root/root-6.08.04/include/TMap.h \
- /global/project/projectdirs/majorana/software/sl64/root/root-6.08.04/include/THashTable.h \
- /global/project/projectdirs/majorana/software/sl64/root/root-6.08.04/include/TUrl.h \
- /global/project/projectdirs/majorana/software/sl64/root/root-6.08.04/include/TTree.h \
+ /global/project/projectdirs/majorana/software/sl64/root/root-6.08.04/include/TChain.h \
  /global/project/projectdirs/majorana/software/sl64/root/root-6.08.04/include/TCanvas.h \
  /global/project/projectdirs/majorana/software/sl64/root/root-6.08.04/include/TPad.h \
  /global/project/projectdirs/majorana/software/sl64/root/root-6.08.04/include/TVirtualPad.h \
@@ -282,11 +278,24 @@ plot.o: plot.cc \
  /global/project/projectdirs/majorana/software/sl64/root/root-6.08.04/include/TTime.h \
  /global/project/projectdirs/majorana/software/sl64/root/root-6.08.04/include/TSpectrum.h \
  /global/project/projectdirs/majorana/software/sl64/root/root-6.08.04/include/TLine.h \
+ /global/project/projectdirs/majorana/software/sl64/root/root-6.08.04/include/TGraph.h \
+ /global/project/projectdirs/majorana/software/sl64/root/root-6.08.04/include/TMultiGraph.h \
+ /global/project/projectdirs/majorana/software/sl64/root/root-6.08.04/include/TF1.h \
+ /global/project/projectdirs/majorana/software/sl64/root/root-6.08.04/include/TFormula.h \
+ /global/project/projectdirs/majorana/software/sl64/root/root-6.08.04/include/TBits.h \
+ /global/project/projectdirs/majorana/software/sl64/root/root-6.08.04/include/TMethodCall.h \
+ /global/common/pdsf_sl6/usg/software/gcc/4.8.2/include/c++/4.8.2/list \
+ /global/common/pdsf_sl6/usg/software/gcc/4.8.2/include/c++/4.8.2/bits/stl_list.h \
+ /global/common/pdsf_sl6/usg/software/gcc/4.8.2/include/c++/4.8.2/bits/list.tcc \
+ /global/project/projectdirs/majorana/software/sl64/root/root-6.08.04/include/Math/ParamFunctor.h \
+ /global/common/pdsf_sl6/usg/software/gcc/4.8.2/include/c++/4.8.2/iostream \
+ /global/project/projectdirs/majorana/software/sl64/root/root-6.08.04/include/TGaxis.h \
+ /global/project/projectdirs/majorana/software/sl64/root/root-6.08.04/include/TLatex.h \
+ /global/project/projectdirs/majorana/software/sl64/root/root-6.08.04/include/TText.h \
  /global/common/pdsf_sl6/usg/software/gcc/4.8.2/include/c++/4.8.2/fstream \
  /global/common/pdsf_sl6/usg/software/gcc/4.8.2/include/c++/4.8.2/x86_64-redhat-linux7E/bits/basic_file.h \
  /global/common/pdsf_sl6/usg/software/gcc/4.8.2/include/c++/4.8.2/x86_64-redhat-linux7E/bits/c++io.h \
- /global/common/pdsf_sl6/usg/software/gcc/4.8.2/include/c++/4.8.2/bits/fstream.tcc \
- /global/common/pdsf_sl6/usg/software/gcc/4.8.2/include/c++/4.8.2/iostream
+ /global/common/pdsf_sl6/usg/software/gcc/4.8.2/include/c++/4.8.2/bits/fstream.tcc
 spindependentinteraction.o: spindependentinteraction.cc \
  /global/common/pdsf_sl6/usg/software/gcc/4.8.2/include/c++/4.8.2/iostream \
  /global/common/pdsf_sl6/usg/software/gcc/4.8.2/include/c++/4.8.2/x86_64-redhat-linux7E/bits/c++config.h \
@@ -400,6 +409,8 @@ spindependentinteraction.o: spindependentinteraction.cc \
  /usr/include/libintl.h \
  /global/common/pdsf_sl6/usg/software/gcc/4.8.2/include/c++/4.8.2/bits/codecvt.h \
  /global/common/pdsf_sl6/usg/software/gcc/4.8.2/include/c++/4.8.2/bits/locale_facets_nonio.tcc \
+ /global/common/pdsf_sl6/usg/software/gcc/4.8.2/include/c++/4.8.2/sstream \
+ /global/common/pdsf_sl6/usg/software/gcc/4.8.2/include/c++/4.8.2/bits/sstream.tcc \
  /global/common/pdsf_sl6/usg/software/gcc/4.8.2/include/c++/4.8.2/fstream \
  /global/common/pdsf_sl6/usg/software/gcc/4.8.2/include/c++/4.8.2/x86_64-redhat-linux7E/bits/basic_file.h \
  /global/common/pdsf_sl6/usg/software/gcc/4.8.2/include/c++/4.8.2/x86_64-redhat-linux7E/bits/c++io.h \
@@ -418,4 +429,5 @@ spindependentinteraction.o: spindependentinteraction.cc \
  /global/common/pdsf_sl6/usg/software/gcc/4.8.2/include/c++/4.8.2/bits/stl_uninitialized.h \
  /global/common/pdsf_sl6/usg/software/gcc/4.8.2/include/c++/4.8.2/bits/stl_vector.h \
  /global/common/pdsf_sl6/usg/software/gcc/4.8.2/include/c++/4.8.2/bits/stl_bvector.h \
- /global/common/pdsf_sl6/usg/software/gcc/4.8.2/include/c++/4.8.2/bits/vector.tcc
+ /global/common/pdsf_sl6/usg/software/gcc/4.8.2/include/c++/4.8.2/bits/vector.tcc \
+ /global/common/pdsf_sl6/usg/software/gcc/4.8.2/include/c++/4.8.2/bitset
