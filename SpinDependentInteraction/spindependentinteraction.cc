@@ -1,4 +1,4 @@
-// Monte Carlo calculation
+// Monte Carlo calculation by Pinghan Chu
 // 2015.2.14
 // modify for sigma.r/sigma.v/sigma.(vxr) for polarized 3He
 //
