@@ -547,7 +547,12 @@ long double integration(long double range){
   //  return 1;
 }
 //Main****************************************************************************************************
-int main(){
+int main(int argc, char** argv)
+{
+  if(argc != 2) {
+    cout << "Usage: " << argv[0] << "" << endl;
+    return 1;
+  }
 
   long double range = 0.;
   long double x= 0.;
