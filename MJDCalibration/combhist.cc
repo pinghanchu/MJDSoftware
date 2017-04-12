@@ -6,74 +6,98 @@
 
 int main(int argc, char** argv)
 {
-  if(argc != 11 || atoi(argv[1]) == 0) {
-    cout << "Usage: " << argv[0] << " [startrun number] [endrun number] [energy name] [Bin HG] [Low HG] [Up HG] [Bin LG] [Low LG] [Up LG] [position]" << endl;
+  if(argc != 7 || atoi(argv[1]) == 0) {
+    cout << "Usage: " << argv[0] << " [startrun number] [endrun number] [energy name] [Position = Mod*100+String*10+Det Position] [Input Path] [Output File]" << endl;
     return 1;
   }
   Int_t fStartRun = atoi(argv[1]);
   Int_t fEndRun = atoi(argv[2]);
   string fEName = argv[3];
-  const char* EnergyName = Form("%s",fEName.c_str());
-  Int_t BinHG = atoi(argv[4]);
-  Int_t LowHG = atoi(argv[5]);
-  Int_t UpHG = atoi(argv[6]);
-  Int_t BinLG = atoi(argv[7]);
-  Int_t LowLG = atoi(argv[8]);
-  Int_t UpLG = atoi(argv[9]);
-  Int_t fPos = atoi(argv[10]);
+  const char* fEnergyName = Form("%s",fEName.c_str());
+  Int_t fPos = atoi(argv[4]);
+  string fInputPath = argv[5];
+  string fOutputFile = argv[6];
 
   GATAutoCal ds(fStartRun,fStartRun);
-  ds.SetEnergyName(EnergyName);
-  string DataSet = ds.GetDataSet();
+  ds.SetEnergyName(fEnergyName);
+  string fDataSet = ds.GetDataSet();
   vector<Int_t> fChannel = ds.GetChannel();
   vector<Int_t> fCryo = ds.GetCryo();
   vector<Int_t> fStr = ds.GetString();
   vector<Int_t> fDetpos = ds.GetDetPosition();
 
-  Int_t pos;
   vector<Int_t> index;
   for(size_t i = 0;i<fChannel.size();i++){
-    pos = fCryo.at(i)*10+fStr.at(i);
+    Int_t pos = fCryo.at(i)*100+fStr.at(i)*10+fDetpos.at(i);
     if(pos == fPos){
       index.push_back(i);
     }
   }
+
+  Int_t Bin1,Bin2,Low1,Low2,Up1,Up2;
+  if(fEName == "trapE" || fEName == "trapENM" || fEName == "trapENF"){
+    Bin1 = 800000;
+    Bin2 = 300000;
+    Low1 = 0;
+    Low2 = 0;
+    Up1 = 8000;
+    Up2 = 3000;
+  }else if(fEName == "trapECal" || fEName == "trapENMCal" || fEName == "trapENFCal"){
+    Bin1 = 300000;
+    Bin2 = 300000;
+    Low1 = 0;
+    Low2 = 0;
+    Up1 = 3000;
+    Up2 = 3000;
+  }else if(fEName == "trapENFBL" || (fStartRun>= 4171 && fEndRun<=4201) || (fStartRun>=9913 && fEndRun<= 9926) || (fStartRun>= 13071 && fEndRun<=13074) || (fStartRun>= 60002368 && fEndRun<= 60002372) ){
+    Bin1 = 1000;
+    Bin2 = 1000;
+    Low1 = -10;
+    Low2 = -10;
+    Up1 = 10;
+    Up2 = 10;
+  }else{
+    Bin1 = 0;
+    Bin2 = 0;
+    Low1 = 0;
+    Low2 = 0;
+    Up1 = 0;
+    Up2 = 0;
+    cout << "No this energy parameter!" <<endl;
+  }
+
   const Int_t channels = index.size();
-  TH1D *Energy[channels];
-
-  string Pos;
+  TH1D* Enr[channels];
+  Int_t Bin;
+  Double_t Low,Up;
   for(size_t i=0;i<index.size();i++){
+    Enr[i] = NULL;
     Int_t ii = index.at(i);
-    Pos = Form("%d%d%d",fCryo.at(ii),fStr.at(ii),fDetpos.at(ii));
-    cout << ii << " " << fChannel.at(ii) << endl;
-    if(fChannel.at(ii)%2==0){
-      Energy[i] = new TH1D(Form("%s%s%d",fEName.c_str(),Pos.c_str(),fChannel.at(ii)),"",BinHG,LowHG,UpHG);
+    if(ii%2 == 0){
+      Bin = Bin1;
+      Low = Low1;
+      Up  = Up1;
     }else{
-      Energy[i] = new TH1D(Form("%s%s%d",fEName.c_str(),Pos.c_str(),fChannel.at(ii)),"",BinLG,LowLG,UpLG);
+      Bin = Bin2;
+      Low = Low2;
+      Up  = Up2;
     }
-  }
-
-  for(Int_t irun = fStartRun;irun<=fEndRun;irun++){
-    cout << "Add : hist_" << irun << ".root" << endl;
-
-    //TFile fhist(Form("./Hist/hist_%d.root",irun),"read");
-    for(size_t  i =0;i<index.size();i++){
-      TFile fhist(Form("./Hist/hist_%d_%d.root",irun,fPos),"read");
-      Int_t ii = index.at(i);
-      Pos = Form("%d%d%d",fCryo.at(ii),fStr.at(ii),fDetpos.at(ii));
-      TH1D* h = (TH1D*)fhist.Get(Form("%s%s%d",fEName.c_str(),Pos.c_str(),fChannel.at(ii)));
-      Energy[i]->Add(h);
-      delete h;
-      fhist.Close();
+    string fHistoName = Form("%s%d",fEName.c_str(),fChannel.at(ii));
+    TH1D *h = new TH1D(Form("%s",fHistoName.c_str()), Form("C%dP%dD%d, Channel = %d",fCryo.at(ii),fStr.at(ii),fDetpos.at(ii),fChannel.at(ii)),Bin,Low,Up);
+    for(Int_t ir = fStartRun;ir<=fEndRun;ir++){
+      
+      string fInputFile = Form("%shist_%d_%s_%d.root",fInputPath.c_str(),ir,fEName.c_str(),fPos);
+      TH1D *h1 = ds.LoadHisto(fInputFile,fHistoName);
+      h->Add(h1);
+      delete h1;
     }
+    Enr[i] = (TH1D*)h->Clone();
+    delete h;
   }
-  TFile newfile(Form("./Hist/hist_%d_%d_%d.root",fStartRun,fEndRun,fPos),"update");
-  for(size_t  i =0;i<index.size();i++){
-    Int_t ii = index.at(i);
-    cout << "Save : " << i << " " << fChannel.at(ii) << endl;
-    Energy[i]->Write();
+  TFile newfile(Form("%s",fOutputFile.c_str()),"update");
+  for(size_t i = 0;i<index.size();i++){
+    Enr[i]->Write();
   }
-
 }
 
 

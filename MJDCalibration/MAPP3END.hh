@@ -7,6 +7,12 @@ Int_t Channelpro[proChannels] = {
   120,121,118,119,116,117,114,115,112,113
 };
 
+string DetectorNamepro[proChannels]={
+  "B8619","B8619","B8717","B8717","PONaMa2","PONaMa2","PONaMa1","PONaMa1",
+  "B8461","B8461",
+  "B8607","B8607","B8456","B8456","B8621","B8621","B8466","B8466","B8473","B8473"
+};
+
 Int_t GoodBadpro[proChannels] = {
   0,0,1,1,1,1,1,1,
   1,1,

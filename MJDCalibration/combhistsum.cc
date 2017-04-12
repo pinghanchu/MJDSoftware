@@ -1,93 +1,102 @@
 // 2016.11.21 Pinghan Chu
-// Combine histgram of all high gain, all natural detectors, etc.
+// Combine histgram of each channel between startrun and endrun
 //
 #include "GATAutoCal.hh"
 #include "TFile.h"
 
 int main(int argc, char** argv)
 {
-  if(argc != 10 || atoi(argv[1]) == 0) {
-    cout << "Usage: " << argv[0] << " [startrun number] [endrun number] [energy name] [Bin HG] [Low HG] [Up HG] [Bin LG] [Low LG] [Up LG]" << endl;
+  if(argc != 6 || atoi(argv[1]) == 0) {
+    cout << "Usage: " << argv[0] << " [startrun number] [endrun number] [energy name] [Input Path] [Output File]" << endl;
     return 1;
   }
-  int startrun = atoi(argv[1]);
-  int endrun = atoi(argv[2]);
-  string EName = argv[3];
-  Int_t BinHG = atoi(argv[4]);
-  Int_t LowHG = atoi(argv[5]);
-  Int_t UpHG = atoi(argv[6]);
-  Int_t BinLG = atoi(argv[7]);
-  Int_t LowLG = atoi(argv[8]);
-  Int_t UpLG = atoi(argv[9]);
-  GATAutoCal ac(startrun,startrun);
-  vector<Int_t> channel = ac.GetChannel();
-  vector<Int_t> cryo = ac.GetCryo();
-  vector<Int_t> str = ac.GetString();
-  vector<Int_t> detpos = ac.GetDetPosition();
-  vector<Int_t> goodbad = ac.GetGoodBad();
-  vector<Int_t> isenriched = ac.GetEnriched();
+  Int_t fStartRun = atoi(argv[1]);
+  Int_t fEndRun = atoi(argv[2]);
+  string fEName = argv[3];
+  const char* fEnergyName = Form("%s",fEName.c_str());
+  string fInputPath = argv[4];
+  string fOutputFile = argv[5];
 
-  string Pos;
-  vector<string> DataName;
-  DataName.push_back("00"); // Natural HG
-  DataName.push_back("01"); // Natural LG
-  DataName.push_back("10"); // Enriched HG
-  DataName.push_back("11"); // Enriched LG
-  DataName.push_back("HG");
-  DataName.push_back("LG");
-  vector<string> TitleName;
-  TitleName.push_back("Natural HG");
-  TitleName.push_back("Natural LG");
-  TitleName.push_back("Enriched HG");
-  TitleName.push_back("Enrichd LG");
-  TitleName.push_back("High Gain");
-  TitleName.push_back("Low Gain");
-  const Int_t nDataName = DataName.size();
-  TH1D* Energy[nDataName];
-  for(size_t i=0;i<DataName.size();i++){
-    Pos = Form("%d%d%d",cryo.at(i),str.at(i),detpos.at(i));
-    if((Int_t)i%2==0){
-      Energy[i] = new TH1D(Form("%s%s",EName.c_str(),DataName.at(i).c_str()),Form("%s",TitleName.at(i).c_str()),BinHG,LowHG,UpHG);
+  GATAutoCal ds(fStartRun,fStartRun);
+  ds.SetEnergyName(fEnergyName);
+  string fDataSet = ds.GetDataSet();
+  vector<Int_t> fChannel = ds.GetChannel();
+  vector<Int_t> fCryo = ds.GetCryo();
+  vector<Int_t> fStr = ds.GetString();
+  vector<Int_t> fDetpos = ds.GetDetPosition();
+  vector<Int_t> fGoodBad = ds.GetGoodBad();
+
+  vector<Int_t> index;
+  for(size_t i = 0;i<fChannel.size();i++){
+    if(fGoodBad.at(i) == 1){
+      index.push_back(i);
+    }
+  }
+
+  Int_t Bin1,Bin2,Low1,Low2,Up1,Up2;
+  if(fEName == "trapE" || fEName == "trapENM" || fEName == "trapENF"){
+    Bin1 = 800000;
+    Bin2 = 300000;
+    Low1 = 0;
+    Low2 = 0;
+    Up1 = 8000;
+    Up2 = 3000;
+  }else if(fEName == "trapECal" || fEName == "trapENMCal" || fEName == "trapENFCal"){
+    Bin1 = 300000;
+    Bin2 = 300000;
+    Low1 = 0;
+    Low2 = 0;
+    Up1 = 3000;
+    Up2 = 3000;
+  }else if(fEName == "trapENFBL" || (fStartRun>= 4171 && fEndRun<=4201) || (fStartRun>=9913 && fEndRun<= 9926) || (fStartRun>= 13071 && fEndRun<=13074) || (fStartRun>= 60002368 && fEndRun<= 60002372) ){
+    Bin1 = 1000;
+    Bin2 = 1000;
+    Low1 = -10;
+    Low2 = -10;
+    Up1 = 10;
+    Up2 = 10;
+  }else{
+    Bin1 = 0;
+    Bin2 = 0;
+    Low1 = 0;
+    Low2 = 0;
+    Up1 = 0;
+    Up2 = 0;
+    cout << "No this energy parameter!" <<endl;
+  }
+
+  const Int_t channels = index.size();
+  TH1D* Enr[channels];
+  Int_t Bin;
+  Double_t Low,Up;
+  for(size_t i=0;i<index.size();i++){
+    Enr[i] = NULL;
+    Int_t ii = index.at(i);
+    Int_t pos = fCryo.at(ii)*100+fStr.at(ii)*10+fDetpos.at(ii);
+
+    if(ii%2 == 0){
+      Bin = Bin1;
+      Low = Low1;
+      Up  = Up1;
     }else{
-      Energy[i] = new TH1D(Form("%s%s",EName.c_str(),DataName.at(i).c_str()),Form("%s",TitleName.at(i).c_str()),BinLG,LowLG,UpLG);
+      Bin = Bin2;
+      Low = Low2;
+      Up  = Up2;
     }
-  }
-
-
-  Int_t fPos;
-  for(size_t  i =0;i<channel.size();i++){
-    Pos = Form("%d%d%d",cryo.at(i),str.at(i),detpos.at(i));
-    fPos = cryo.at(i)*10+str.at(i);
-    TFile fhist(Form("./Hist/hist_%d_%d_%d.root",startrun,endrun,fPos),"read");
-    cout << Pos.c_str() << " " << channel.at(i) << endl;
-    TH1D* h1 = (TH1D*)fhist.Get(Form("%s%s%d",EName.c_str(),Pos.c_str(),channel.at(i)));
-    if(goodbad.at(i)==1){
-      if(channel.at(i)%2==0){
-	Energy[4]->Add(h1);      
-	if(isenriched.at(i) ==0){
-	  Energy[0]->Add(h1);
-	}else{
-	  Energy[2]->Add(h1);
-	}
-      }else{
-	Energy[5]->Add(h1);
-        if(isenriched.at(i) ==0){
-          Energy[1]->Add(h1);
-        }else{
-          Energy[3]->Add(h1);
-        }
-      }
-    }
+    string fHistoName = Form("%s%d",fEName.c_str(),fChannel.at(ii));
+    TH1D *h = new TH1D(Form("%s",fHistoName.c_str()), Form("C%dP%dD%d, Channel = %d",fCryo.at(ii),fStr.at(ii),fDetpos.at(ii),fChannel.at(ii)),Bin,Low,Up);
+    string fInputFile = Form("%shist_%d_%d_%s_%d.root",fInputPath.c_str(),fStartRun,fEndRun,fEName.c_str(),pos);
+    TH1D *h1 = ds.LoadHisto(fInputFile,fHistoName);
+    h->Add(h1);
     delete h1;
-    fhist.Close();
+
+    Enr[i] = (TH1D*)h->Clone();
+    delete h;
   }
- 
-  
-  TFile newfile(Form("./Hist/hist_%d_%d.root",startrun,endrun),"update");
-  for(size_t  i =0;i<DataName.size();i++){
-    Energy[i]->Write();
+  TFile newfile(Form("%s",fOutputFile.c_str()),"update");
+  for(size_t i = 0;i<index.size();i++){
+    Enr[i]->Write();
   }
-  
 }
 
 

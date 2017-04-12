@@ -52,8 +52,8 @@ public:
   virtual inline Double_t GetTotalTime() { return fDS.GetRunTime(); }
   virtual inline TChain* GetMJDTree(){ return fMjdTree; }
   virtual inline MJTChannelMap* GetMap(){ return fMap; }
-  virtual inline TH1D* GetHisto(Int_t index){ return TrapE[index]; }
 
+  virtual Double_t IsNan(string Input);
   virtual void SetMjdTree(TChain *mjdTree);
   virtual void SetRunRange(Int_t StartRun, Int_t EndRun);
   virtual void SetCalibrationPeak();
@@ -69,31 +69,41 @@ public:
   virtual Double_t GetStopTimeMT();
   virtual Int_t GetStopDateMT();
  
-  virtual void FillHisto(TChain* mTree,Int_t Bin1, Double_t Low1, Double_t Up1, Int_t Bin2, Double_t Low2, Double_t Up2);
-  virtual void FillHistoCal(TChain* mTree,vector<Double_t> Offset, vector<Double_t> Slope,Int_t Bin1, Double_t Low1, Double_t Up1, Int_t Bin2, Double_t Low2, Double_t Up2);
-  virtual void FillHistoDC(TChain* mTree, vector<Int_t> Channel, vector<string> EnergyName, Int_t Bin1, Double_t Low1, Double_t Up1, Int_t Bin2, Double_t Low2, Double_t Up2);
-  virtual void FillHistoDCCal(TChain* mTree,vector<string> EnergyName,vector<Double_t> Offset, vector<Double_t> Slope,Int_t Bin1, Double_t Low1, Double_t Up1, Int_t Bin2, Double_t Low2, Double_t Up2);
-  virtual void SaveFile(string PathName,string FileName);
-  virtual void LoadFile(string PathName,string FileName);
+  virtual TH1D* FillHisto(TChain* mTree, string EnergyName, Int_t Channel, Int_t Bin, Double_t Low, Double_t Up);
+  virtual void SaveHisto(TH1D* Hist, string FileName, string Option);
+  virtual TH1D* LoadHisto(string FileName, string HistoName);
 
+  virtual Int_t MultiPeakFit(TH1F *Hist,Double_t scaleenergy, Double_t scaleamps,string FitName, vector<string>* ParName, vector<Double_t>* Par, vector<Double_t>* ParErr, vector<Double_t>* Cov, vector<Double_t>* CalPeak);
+  virtual Int_t LinearFit(vector<Double_t> Px, vector<Double_t> PxErr, vector<Double_t> Py, vector<Double_t> PyErr, string FitName, string TitleName, Double_t EnergyROI, vector<Double_t>* Par, vector<Double_t>* ParErr, vector<Double_t>* Cov);
+
+  virtual void SetUpProvenance(std::string title, std::string yourname,
+			       Int_t gatrev,
+			       int startrun, int endrun,
+			       int coverstartrun, int coverendrun,
+			       int startdate, int enddate,
+			       int coverstartdate, int coverenddate);
+
+  virtual void PutECalMJDB(int channel,std::string detectorid,
+			   double scale, double scalerr,
+			   double offset, double offerr,
+			   std::vector<double> covariance);
+
+  /*
   virtual Double_t GetMaximumPeak(TH1D *Hist,Double_t Low, Double_t Up);
   virtual vector<Double_t> GetRefPeak(Double_t LastPeak, Double_t FirstPeak);
 
   virtual void GaussFit(TH1D *Hist, Double_t Mean, Double_t Window, vector<Double_t>* Par, vector<Double_t>* ParErr, string PathName,string FileName, string TitleName);
-  virtual void SkewGaussFit(TH1D *Hist, Double_t Mean, Double_t Window, vector<Double_t>* Par, vector<Double_t>* ParErr,string PathName, string FileName, string TitleName, string opt);
-  virtual void GaussSlopeFit(TH1D *Hist, Double_t Mean, Double_t Window,vector<Double_t>* Par, vector<Double_t>* ParErr, string PathName,string FileName, string TitleName);
+  virtual void SkewGaussFit(TH1D *Hist, Double_t Mean, Double_t Window, vector<Double_t>* Par, vector<Double_t>* ParErr,string PathName, string FileName, string TitleName, string Option);
   virtual void EzFit(TH1D *Hist, Double_t Mean, Double_t Window,Int_t ReBin, vector<Double_t>* Par, vector<Double_t>* ParErr, string PathName,string FileName, string TitleName);
   virtual void NoBGFit(TH1D *Hist, Double_t Mean, Double_t Window,Int_t ReBin, vector<Double_t>* Par, vector<Double_t>* ParErr, string PathName,string FileName, string TitleName);
   virtual void MultiPeakFitterFull(TH1F *Hist, Double_t scaleenergy, Double_t scaleamps,string FileName, vector<string>* ParName, vector<Double_t>* Par, vector<Double_t>* ParErr, vector<Double_t>* Cov);
   virtual Int_t MultiPeakFitter(TH1F *Hist,Double_t scaleenergy, Double_t scaleamps,string FileName, vector<string>* ParName, vector<Double_t>* Par, vector<Double_t>* ParErr, vector<Double_t>* Cov);
   virtual Int_t MultiPeakFitter(TH1F *Hist,Double_t scaleenergy, Double_t scaleamps,string FileName, vector<string>* ParName, vector<Double_t>* Par, vector<Double_t>* ParErr, vector<Double_t>* Cov, TH1F* HistoE0);
   virtual void LinearFit(vector<Double_t> Px, vector<Double_t> PxErr, vector<Double_t> Py, vector<Double_t> PyErr, vector<Double_t>* Par, vector<Double_t>* ParErr,string PathName,string FileName,string TitleName, Double_t ROIEnergy);
-
   virtual void ResolutionFit(vector<Double_t> Px, vector<Double_t> PxErr, vector<Double_t> Py, vector<Double_t> PyErr, vector<Double_t>* Par, vector<Double_t>* ParErr, string PathName, string FileName, string TitleName, Double_t ROIEnergy);
-
   virtual TGraphErrors* QuadFit(vector<Double_t> Px,vector<Double_t> PxErr, vector<Double_t> Py, vector<Double_t> PyErr, vector<Double_t>* Par, vector<Double_t>* ParErr, string PathName, string FileName, string TitleName);
-
   virtual Double_t RampTimeFit(vector<Double_t> Px,vector<Double_t> PxErr, vector<Double_t> Py, vector<Double_t> PyErr, vector<Double_t>* Par, vector<Double_t>* ParErr, string PathName, string FileName, string TitleName);
+
 
   virtual void PlotMultiGraph(TMultiGraph *MG, TLegend *Leg,string PathName, string FileName, string TitleName);
 
@@ -133,13 +143,13 @@ public:
 			   vector<Double_t> &calwidtherr,
 			   int &calibrationpeaks);
 
-
+  */
 protected:
   GATDataSet fDS;
   TChain* fMjdTree;
-  TChain* fMjdTree1;
+  //TChain* fMjdTree1;
   MJTChannelMap* fMap;
-  TH1D *TrapE[125];
+  //TH1D *TrapE[125];
 
   size_t fEntries;
   Int_t fStartRun;

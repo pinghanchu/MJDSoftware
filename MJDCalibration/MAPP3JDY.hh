@@ -1,5 +1,6 @@
 const Int_t kChannels = 58;
 
+//DS0
 Int_t GoodBad0[kChannels] = {
   1,1,1,1,1,1,1,1,
   0,0,1,1,1,1,0,0,
@@ -9,8 +10,8 @@ Int_t GoodBad0[kChannels] = {
   0,0,1,1,1,1,0,0,
   1,1,1,1,1,1,0,0
 };
-
-Int_t OrtecBeGe0[kChannels] = {
+//Mod1
+Int_t OrtecBeGe1[kChannels] = {
   1,1,1,1,1,1,1,1,
   0,0,1,1,1,1,1,1,
   0,0,1,1,1,1,1,1,
@@ -20,7 +21,8 @@ Int_t OrtecBeGe0[kChannels] = {
   0,0,1,1,1,1,1,1
 };
 
-Double_t Pulser0[kChannels] = {
+//Pulser[trapE] in DS0 (<run3464)
+Double_t Pulser01[kChannels] = {
   0, 0, 4757.5, 1410.5, 4620.5, 1371.5, 4564.5, 1345.5,
   0, 0, 2100.5, 627.5,  431.5,  127.5,  0, 0,
   0, 0, 0, 0, 2095.5, 617.5, 2117.5, 630.5,
@@ -30,8 +32,8 @@ Double_t Pulser0[kChannels] = {
   4472.5, 1326.5, 4491.5, 1324.5, 4555.5, 1359.5, 0, 0
 };
 
-
-Double_t PulserCal0[kChannels] = {
+//Pulser[trapECal] in DS0 (<run3464)
+Double_t PulserCal01[kChannels] = {
   0., 0., 1799.5, 1798.5, 1843.5, 1843.5, 1856.5, 1855.5,
   0, 0, 844.5, 843.5, 171.5, 172.5, 0, 0,
   0, 0, 0, 0, 845.5, 844.5, 862.5, 861.5,
@@ -41,7 +43,8 @@ Double_t PulserCal0[kChannels] = {
   1847.5, 1847.5, 1837.5, 1836.5, 1834.5, 1834.5, 0.,0.
 };
 
-Double_t Pulser1[kChannels] = {
+//Pulser[trapE] in DS0 (>run3464)
+Double_t Pulser02[kChannels] = {
   109.5, 33.5, 1691.5, 501.5, 1600.5, 474.5, 1571.5, 463.5,
   0, 0, 1592.5, 475.5, 1599.5, 471.5, 0, 0,
   0, 0, 0, 0, 1609.5, 475.5, 1568.5, 467.5,
@@ -51,7 +54,8 @@ Double_t Pulser1[kChannels] = {
   1548.5, 459.5, 1563.5, 461.5, 1589.5, 474.5, 0, 0
 };
 
-Double_t PulserCal1[kChannels] = {
+//Pulser[trapECal] in DS0 (>run3464)
+Double_t PulserCal02[kChannels] = {
   44.5, 44.5, 639.5, 639.5, 638.5, 638.5, 639.5, 639.5,
   0, 0, 639.5, 640.5, 638.5, 637.5, 0., 0.,
   0, 0, 0, 0, 648.5, 649.5, 638.5, 638.5,
