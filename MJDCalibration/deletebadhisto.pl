@@ -1,4 +1,6 @@
 #!/usr/bin/perl
+#This script deletes bad histograms with size less than 300
+#
 system("ls -sl ./Hist/hist_*_*_*.root > List/list.txt");
 open(my $fin, "<", "./List/list.txt") or die "Failed to open file: $!\n";
 while(my $line = <$fin>) {

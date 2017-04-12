@@ -1,7 +1,7 @@
 This document summarizes the procedure of calibration.
 The DAQ shifter needs to do the following items:
 
-0. Copy this package to your home and then "make" to compile the code.
+0. Copy this package to your home and then "make" to compile the code. Make "MkCookie" is linked to the latest software (the current one is at "/global/project/projectdirs/majorana/software/sl64/mjsw/mjsw201704Prod/MGDO/bin/"). If the link does not work, please contact with Robert Varnerrl.
 
 1. Determine the run range [startrun,endrun] and the cover range [cover startrun, cover endrun] form elog or database.
 
@@ -11,9 +11,9 @@ If you update the latest calibration runs, the [cover start run] is usually equa
 
 3. Run the Step 1 of the script "submit.pl". 
 This will run the script "calibration.pl" and do calibration. This script will submit jobs for the energy trapE, trapENF, trapENM of each detector. 
-a. Check if $dataset is correct path for the gat data.
+a. Check if $dataset is the correct path for the GAT data.
 b. Comment out Step 2 and Step 3.
-c. Check if all jobs are done. The path saving the output text files is "./List/[startrun]_[endrun]/". It includes "calibration_[startrun]_[endrun]_*.txt", "cov_[startrun]_[endrun]_*.txt", and "reso_[startrun]_[endrun]_*.txt". Qsub doesn't always finish jobs. After all jobs are done, re-run "submit.pl". Repeat this process few time until no job will be submitted.
+c. Check if all jobs are done. The path saving the output text files is "./List/[startrun]_[endrun]/". It includes "calibration_[startrun]_[endrun]_*.txt", "cov_[startrun]_[endrun]_*.txt", and "reso_[startrun]_[endrun]_*.txt". Qsub doesn't always finish jobs. After all jobs are done, re-run "submit.pl". Repeat this process few times until no job will be submitted. You can also use "repeat.pl" to repeat this process every 5 mins.
 
 4. Run teh Step 2 of the script "submit.pl".
 This will generate a document "calibration_[start run]_[end run].pdf". It includes plots of fitted spectrum and the deviation of the linear fitting. 

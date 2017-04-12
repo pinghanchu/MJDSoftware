@@ -1,6 +1,7 @@
 // 2016.11.21 Pinghan Chu
 // Combine histgram of each channel between startrun and endrun
-//
+// Input path is the path storing hist_[run]_[energy name]_[position].root
+// Output file is hist_[start run]_[end run]_[energy name]_[position].root
 #include "GATAutoCal.hh"
 #include "TFile.h"
 

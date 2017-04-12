@@ -1,6 +1,5 @@
 // 2016.2.18
-// written by Pinghan Chu
-// Following the logic in GATAutoCal.cc
+// This macro uploads the calibration parameters.
 // 
 #include "GATAutoCal.hh"
 #include <iostream>

@@ -1,4 +1,6 @@
 #!/usr/bin/perl
+#This script generates a tex file, "plot.tex", including the plots of spectrum and the deviation of calibration.
+#
 #######Good detector list:##############
 #DS0
 #my @pos1 = (111,112,113,114,122,123,134,141,142,143,144,145,151,152,154,162,163,171,172,173);

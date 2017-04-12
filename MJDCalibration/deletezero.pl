@@ -1,4 +1,6 @@
 #!/usr/bin/perl
+#This script deletes all text file in ./List/ with size equal to zero.
+#
 system("ls -ls ./List/*_*/*.txt > List/list.txt");
 open(my $fin, "<", "./List/list.txt") or die "Failed to open file: $!\n";
 while(my $line = <$fin>) {

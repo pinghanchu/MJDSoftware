@@ -1,5 +1,6 @@
 #!/usr/bin/perl
 my $dataset = "P3LQK";
+
 system("rm *.csh");
 system("mkdir Plot");
 system("mkdir List");
@@ -17,7 +18,11 @@ foreach $ienr (@energy){
 	my $home = "./";
 	my $inputpath = "/global/project/projectdirs/majorana/data/mjd/surfmjd/data/gatified/".$dataset."/";
 	my $outputpath = $home."Hist/";
-	print $startrun," ", $endrun," ",$coverstartrun," ",$coverendrun,"\n";
+	my $dir = $startrun."_".$endrun;
+	system("mkdir /List/$dir");
+	system("mkdir ./Plot/$dir");
+        print $startrun," ", $endrun," ",$coverstartrun," ",$coverendrun,"\n";
+
 	
 	#####Step 1: calibration###############
 	system("./deletezero.pl");

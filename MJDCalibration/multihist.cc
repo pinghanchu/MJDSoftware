@@ -1,5 +1,6 @@
 // 2016.11.21 Pinghan Chu
-// calibrate sum spectrum of all high gain, all natural detectors etc.
+// This macro applies GATMultiPeakFitter() to calibrate the spectrum.
+//
 #include "GATAutoCal.hh"
 #include "TMatrixD.h"
 #include "TFile.h"

@@ -1,4 +1,6 @@
 #!/usr/bin/perl
+#This script fills histograms, combhines histograms and calibrates histograms.
+#
 #######Good detector list:##############
 #DS0
 #my @pos1 = (111,112,113,114,122,123,134,141,142,143,144,145,151,152,154,162,163,171,172,173);
@@ -36,8 +38,6 @@ my $dir = $startrun."_".$endrun;
 #my $home = "/global/projecta/projectdirs/majorana/users/pchu/ana/WORK/MJDCalibration/";
 my $home = "./";
 
-system("mkdir /List/$dir");
-system("mkdir ./Plot/$dir");
 print "startrun = ", $startrun,"; endrun = ", $endrun,"; cover start run = ", $coverstartrun,"; cover end run = ", $coverendrun,"\n";
 print "Energy = ", $energy, "; GAT data path = ", $gatpath,"\n";
 
@@ -123,7 +123,5 @@ foreach $ip (@pos){
 	system("chmod 755 $app");
 	#system("./$app");
 	system("qsub -l projectio=1 -cwd -o out.$file -e err.$file $app");
-	#system("qsub -o out.$file -e err.$file $app");
-	#sleep(3*60);
     }
 }

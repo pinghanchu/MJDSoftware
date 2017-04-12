@@ -1,4 +1,6 @@
 #!/usr/bin/perl
+#This script combines histograms of all operating detector into one ROOT file.
+#
 my @energy = ("trapENF","trapENM","trapE");
 foreach $ienr (@energy){
     open(my $fin, "<", "./runrange.txt") or die "Failed to open file: $!\n";
