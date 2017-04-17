@@ -1,5 +1,5 @@
-#ifndef GATAutoCal_hh
-#define GATAutoCal_hh
+#ifndef _GATAutoCal_hh
+#define _GATAutoCal_hh
 
 #include "GATDataSet.hh"
 #include "MJAnalysisDoc.hh"
@@ -32,6 +32,8 @@ public:
   GATAutoCal(Int_t StartRun = 1, Int_t EndRun = 1);
   virtual ~GATAutoCal() {}
 
+  virtual inline TChain* GetMJDTree(){ return fMjdTree; }
+  virtual inline MJTChannelMap* GetMap(){ return fMap; }
   virtual inline Int_t GetStartRun() { return fStartRun; }
   virtual inline Int_t GetEndRun() { return fEndRun; }
   virtual inline Int_t GetEntries() { return fEntries; }
@@ -50,8 +52,7 @@ public:
   virtual inline vector<Double_t> GetPulser(){ return fPulser;}
   virtual inline void SetEnergyName(const char* energyname) { fEnergyName = energyname; }
   virtual inline Double_t GetTotalTime() { return fDS.GetRunTime(); }
-  virtual inline TChain* GetMJDTree(){ return fMjdTree; }
-  virtual inline MJTChannelMap* GetMap(){ return fMap; }
+
 
   virtual Double_t IsNan(string Input);
   virtual void SetMjdTree(TChain *mjdTree);
@@ -147,9 +148,7 @@ public:
 protected:
   GATDataSet fDS;
   TChain* fMjdTree;
-  //TChain* fMjdTree1;
   MJTChannelMap* fMap;
-  //TH1D *TrapE[125];
 
   size_t fEntries;
   Int_t fStartRun;

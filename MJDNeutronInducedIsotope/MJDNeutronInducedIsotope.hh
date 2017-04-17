@@ -2,6 +2,7 @@
 #define GATAutoCal_hh
 
 #include "GATDataSet.hh"
+#include "GATAutoCal.hh"
 #include "MJAnalysisDoc.hh"
 #include "MJProvenance.hh"
 #include "TObject.h"
@@ -19,21 +20,14 @@
 #include <string>
 
 using namespace std;
-/*
-Double_t Reso(Double_t *v, Double_t *par){
-  Double_t fitval = TMath::Sqrt(par[0]*par[0]+par[1]*par[1]*v[0]+par[2]*par[2]*v[0]*v[0]);
-  return fitval;
-}
-*/
 
-class GATAutoCal : public TObject  
+
+class MJDNeutronInducedIsotope : public TObject  
 {
 public:   
-  GATAutoCal(Int_t StartRun = 1, Int_t EndRun = 1);
-  virtual ~GATAutoCal() {}
-
-  virtual inline Int_t GetStartRun() { return fStartRun; }
-  virtual inline Int_t GetEndRun() { return fEndRun; }
+  MJDNeutronInducedIsotope(Int_t Run = 1);
+  virtual ~MJDNeutronInducedIsotope() {}
+  virtual inline Int_t GetRun() { return fRun; }
   virtual inline Int_t GetEntries() { return fEntries; }
   virtual inline Int_t GetIsRadio() { return fIsRadio; }
   virtual inline string GetDataSet(){ return fDataSet; }
@@ -44,123 +38,34 @@ public:
   virtual inline vector<Int_t> GetDetPosition(){ return fDetector; }
   virtual inline vector<Int_t> GetGoodBad(){ return fGoodBad; }
   virtual inline vector<Int_t> GetEnriched(){ return fEnriched;}
-  virtual inline vector<Double_t> GetCalibrationPeak(){ return fCalibrationPeak; }
   virtual inline vector<string> GetDetectorName(){ return fDetectorName;}
-  virtual inline vector<Double_t> GetPulserCal(){ return fPulserCal;}
-  virtual inline vector<Double_t> GetPulser(){ return fPulser;}
-  virtual inline void SetEnergyName(const char* energyname) { fEnergyName = energyname; }
-  virtual inline Double_t GetTotalTime() { return fDS.GetRunTime(); }
   virtual inline TChain* GetMJDTree(){ return fMjdTree; }
   virtual inline MJTChannelMap* GetMap(){ return fMap; }
 
-  virtual Double_t IsNan(string Input);
-  virtual void SetMjdTree(TChain *mjdTree);
-  virtual void SetRunRange(Int_t StartRun, Int_t EndRun);
-  virtual void SetCalibrationPeak();
-  virtual void SetCalibrationPeak(vector<Double_t> gammakeV);
-  virtual void SetDataSet();
-  virtual void SetParameters();
-  virtual void SetChannel();
-  virtual Int_t GetGATRev();
-  virtual Double_t GetStartTime();
-  virtual Double_t GetStartTimeMT();
-  virtual Int_t GetStartDateMT();
-  virtual Double_t GetStopTime();
-  virtual Double_t GetStopTimeMT();
-  virtual Int_t GetStopDateMT();
+  virtual void SearchDelayedEvent(Double_t fEnr1, Double_t fEnr2, Double_t fTime, string fOutputFile);
+  virtual void SearchEnergyEvent(Double_t fEnr1, string fOutputFile);
+  virtual TH1D* GetWaveform(Int_t fR,Int_t fEntry, Int_t fChan,Double_t fEnr);
+  virtual TH1D* GetHistoSmooth(TH1D* hist, Int_t DeltaBin);
+  virtual TH1D* GetHistoDerivative(TH1D* hist, Int_t DeltaBin);
+  virtual TH1* GetHistoFFT(TH1D* hist);
+  virtual Int_t FindPeaks(TH1D* hist, Double_t Low, Double_t up, Double_t Resolution, Double_t Sigma, Double_t Threshold, vector<Double_t>* fPositionX, vector<Double_t>* fPositionY);
+  virtual Double_t GetYValue(TH1D* hist, Double_t X);
  
-  virtual TH1D* FillHisto(TChain* mTree, string EnergyName, Int_t Channel, Int_t Bin, Double_t Low, Double_t Up);
-  virtual void SaveHisto(TH1D* Hist, string FileName, string Option);
-  virtual TH1D* LoadHisto(string FileName, string HistoName);
+  virtual vector<Int_t> Sort(vector<Double_t> X);
+  virtual vector<Int_t> Clean(vector<Double_t> X); 
 
-  virtual Int_t MultiPeakFit(TH1F *Hist,Double_t scaleenergy, Double_t scaleamps,string FitName, vector<string>* ParName, vector<Double_t>* Par, vector<Double_t>* ParErr, vector<Double_t>* Cov, vector<Double_t>* CalPeak);
-  virtual Int_t LinearFit(vector<Double_t> Px, vector<Double_t> PxErr, vector<Double_t> Py, vector<Double_t> PyErr, string FitName, string TitleName, Double_t EnergyROI, vector<Double_t>* Par, vector<Double_t>* ParErr, vector<Double_t>* Cov);
-
-  virtual void SetUpProvenance(std::string title, std::string yourname,
-			       Int_t gatrev,
-			       int startrun, int endrun,
-			       int coverstartrun, int coverendrun,
-			       int startdate, int enddate,
-			       int coverstartdate, int coverenddate);
-
-  virtual void PutECalMJDB(int channel,std::string detectorid,
-			   double scale, double scalerr,
-			   double offset, double offerr,
-			   std::vector<double> covariance);
-
-  /*
-  virtual Double_t GetMaximumPeak(TH1D *Hist,Double_t Low, Double_t Up);
-  virtual vector<Double_t> GetRefPeak(Double_t LastPeak, Double_t FirstPeak);
-
-  virtual void GaussFit(TH1D *Hist, Double_t Mean, Double_t Window, vector<Double_t>* Par, vector<Double_t>* ParErr, string PathName,string FileName, string TitleName);
-  virtual void SkewGaussFit(TH1D *Hist, Double_t Mean, Double_t Window, vector<Double_t>* Par, vector<Double_t>* ParErr,string PathName, string FileName, string TitleName, string Option);
-  virtual void EzFit(TH1D *Hist, Double_t Mean, Double_t Window,Int_t ReBin, vector<Double_t>* Par, vector<Double_t>* ParErr, string PathName,string FileName, string TitleName);
-  virtual void NoBGFit(TH1D *Hist, Double_t Mean, Double_t Window,Int_t ReBin, vector<Double_t>* Par, vector<Double_t>* ParErr, string PathName,string FileName, string TitleName);
-  virtual void MultiPeakFitterFull(TH1F *Hist, Double_t scaleenergy, Double_t scaleamps,string FileName, vector<string>* ParName, vector<Double_t>* Par, vector<Double_t>* ParErr, vector<Double_t>* Cov);
-  virtual Int_t MultiPeakFitter(TH1F *Hist,Double_t scaleenergy, Double_t scaleamps,string FileName, vector<string>* ParName, vector<Double_t>* Par, vector<Double_t>* ParErr, vector<Double_t>* Cov);
-  virtual Int_t MultiPeakFitter(TH1F *Hist,Double_t scaleenergy, Double_t scaleamps,string FileName, vector<string>* ParName, vector<Double_t>* Par, vector<Double_t>* ParErr, vector<Double_t>* Cov, TH1F* HistoE0);
-  virtual void LinearFit(vector<Double_t> Px, vector<Double_t> PxErr, vector<Double_t> Py, vector<Double_t> PyErr, vector<Double_t>* Par, vector<Double_t>* ParErr,string PathName,string FileName,string TitleName, Double_t ROIEnergy);
-  virtual void ResolutionFit(vector<Double_t> Px, vector<Double_t> PxErr, vector<Double_t> Py, vector<Double_t> PyErr, vector<Double_t>* Par, vector<Double_t>* ParErr, string PathName, string FileName, string TitleName, Double_t ROIEnergy);
-  virtual TGraphErrors* QuadFit(vector<Double_t> Px,vector<Double_t> PxErr, vector<Double_t> Py, vector<Double_t> PyErr, vector<Double_t>* Par, vector<Double_t>* ParErr, string PathName, string FileName, string TitleName);
-  virtual Double_t RampTimeFit(vector<Double_t> Px,vector<Double_t> PxErr, vector<Double_t> Py, vector<Double_t> PyErr, vector<Double_t>* Par, vector<Double_t>* ParErr, string PathName, string FileName, string TitleName);
-
-
-  virtual void PlotMultiGraph(TMultiGraph *MG, TLegend *Leg,string PathName, string FileName, string TitleName);
-
-  virtual void PlotGrid(vector<Int_t> Px,vector<Double_t> Py, vector<Double_t> PyErr, Double_t Ave, string PathName,string FileName,string TitleName);
-  virtual void PlotGrid(TMultiGraph *MG, TLegend *Leg,vector<Int_t> Px, vector<Double_t> Ave, Double_t Low, Double_t Up, string PathName,string FileName);
-
-  virtual void PlotSpectrum(TH1D *Hist, std::string FileName);
-  virtual void PlotSpectrum2(TH1D *H1,TH1D *H2,TLegend *Leg, std::string FileName);
-  virtual void PlotGraph(TGraphErrors *Graph, string FileName);
-  //virtual void PlotMultiGraph(TMultiGraph *Graph, TLegend *Leg, string FileName);
-
-  virtual void SetUpProvenance(std::string title, std::string yourname,
-		       Int_t gatrev,
-		       int startrun, int endrun,
-		       int coverstartrun, int coverendrun,
-		       int startdate, int enddate,
-		       int coverstartdate, int coverenddate);
-    
-  virtual void PutECalMJDB(int channel,std::string detectorid,
-		   double scale, double scalerr,
-		   double offset, double offerr,
-		   std::vector<double> covariance);
-
-
-  virtual TProfile* PeakProfileTime(TChain* fChain,string fCut,Double_t PeakChannel,Double_t PeakChannelWindow, string PathName,string FileName);
-
-  virtual void PutPeakLocationMJDB(Int_t channel,std::string detectorid,
-			   vector<Double_t> &calpeak,
-			   vector<Double_t> &calpeakerr,
-			   vector<Double_t> &calwidth,
-			   vector<Double_t> &calwidtherr);
-  //   int &calibrationpeaks);
-  virtual void GetPeakLocationMJDB(Int_t channel,
-			   vector<Double_t> &calpeak,
-			   vector<Double_t> &calpeakerr,
-			   vector<Double_t> &calwidth,
-			   vector<Double_t> &calwidtherr,
-			   int &calibrationpeaks);
-
-  */
 protected:
-  GATDataSet fDS;
+  GATAutoCal fDS;
   TChain* fMjdTree;
-  //TChain* fMjdTree1;
   MJTChannelMap* fMap;
-  //TH1D *TrapE[125];
 
   size_t fEntries;
-  Int_t fStartRun;
-  Int_t fEndRun;
+  Int_t fRun;
   UInt_t fGATRev;
   Int_t fIsRadio;
   Double_t fMTStartTime;
   Double_t fMTStopTime;
-  string fEnergyName;
   string fDataSet;
-
   vector<Int_t> fChannel;
   vector<Int_t> fPulserTagChannel;
   vector<Int_t> fCryo;
@@ -168,28 +73,19 @@ protected:
   vector<Int_t> fDetector;
   vector<Int_t> fGoodBad;
   vector<Int_t> fEnriched;
-  vector<Double_t> fPulserCal;
-  vector<Double_t> fPulser;
-  vector<Double_t> fCalibrationPeak;
   vector<string> fDetectorName;
-  vector<Double_t>* fMTTime;
-  vector<Int_t>* fMTDate;
-  //std::vector<Double_t>* fMTChannel;
-  //std::vector<Double_t>* fMTTrapENFCal;
-  //std::vector<Double_t>* fMTTrapECal;
-  //std::vector<Double_t>* fMTTimestamp;
-  //std::vector<Int_t>* fMTwfDCBits;
 
-  Int_t fChannels;
-  Int_t fStrings;
-  Int_t fCalibrationPeaks;
-  Int_t fPulserTagChannels;
-  Int_t fTotalChannels;
+  vector<Double_t>* fMTChannel;
+  vector<Double_t>* fMTTrapENFCal;
+  vector<Double_t>* fMTTimestamp;
+  ULong_t fMTmH;
+  UInt_t fMTEventDC1Bits;
+  vector<Double_t>* fMTfastTrapNLCWFsnRisingX;
+
+
 private:
-  MJDB::MJProvenance fACProvenance;
-  // use this one copy of the analysisdb
-  MJDB::MJAnalysisDoc fACAnalysisDB;
-  //ClassDef(GATAutoCal,1)
+
+
 };
 
 #endif

@@ -19,15 +19,15 @@ foreach $ienr (@energy){
 	my $inputpath = "/global/project/projectdirs/majorana/data/mjd/surfmjd/data/gatified/".$dataset."/";
 	my $outputpath = $home."Hist/";
 	my $dir = $startrun."_".$endrun;
-	system("mkdir /List/$dir");
-	system("mkdir ./Plot/$dir");
+	#system("mkdir /List/$dir");
+	#system("mkdir ./Plot/$dir");
         print $startrun," ", $endrun," ",$coverstartrun," ",$coverendrun,"\n";
 
 	
 	#####Step 1: calibration###############
-	system("./deletezero.pl");
-	system("./deletebadhisto.pl");
-	system("./calibration.pl $startrun $endrun $coverstartrun $coverendrun $enr $inputpath $outputpath");
+	#system("./deletezero.pl");
+	#system("./deletebadhisto.pl");
+	#system("./calibration.pl $startrun $endrun $coverstartrun $coverendrun $enr $inputpath $outputpath");
 	
 	######################################################################
 	
@@ -43,8 +43,12 @@ foreach $ienr (@energy){
 	#####Step 3: upload calibration parameters#########
 	my $inputpath = $home."List/".$startrun."_".$endrun."/calibration_".$startrun."_".$endrun."_".$enr."_*.txt";
 	my $outputfile = $home."List/".$startrun."_".$endrun."/calibration_".$startrun."_".$endrun.".txt";
-	#system("cat $inputpath > $outputfile");
-	#system("./MkCookie");
-	#system("./uploadlinearfit $startrun $endrun $coverstartrun $coverendrun $enr");
+	system("cat $inputpath > $outputfile");
+	my $inputpath = $home."List/".$startrun."_".$endrun."/cov_".$startrun."_".$endrun."_".$enr."_*.txt";
+        my $outputfile = $home."List/".$startrun."_".$endrun."/cov_".$startrun."_".$endrun.".txt";
+	system("cat $inputpath > $outputfile");
+	system("./MkCookie");
+	print $enr,"\n";
+	system("./uploadlinearfit $startrun $endrun $coverstartrun $coverendrun $enr");
     }
 }

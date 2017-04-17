@@ -165,7 +165,7 @@ int main(int argc, char** argv)
     sloer = 0;
     off = 999999;
     offer = 0;
-    cout << fStartRun << " " << fEndRun << " " << fEName.c_str() << " " << fPos << " " << fPulserChannel.at(i) << " " << slo << " " << sloer << " " << off << " " << offer << endl;
+    cout << fStartRun << " " << fEndRun << " " << fEName.c_str() << " " << "000" << " " << fPulserChannel.at(i) << " " << slo << " " << sloer << " " << off << " " << offer << endl;
     ds.PutECalMJDB(fPulserChannel.at(i), "Pulser", slo,sloer,off,offer, cov);
   }
 
@@ -188,7 +188,7 @@ int main(int argc, char** argv)
     sloer = 0;
     off = 999999;
     offer = 0;
-    cout << fStartRun << " " << fEndRun << " " << fEName.c_str() << " " << fPos << " " << fPulserChannel.at(i) << " " << slo << " " << sloer << " " << off << " " << offer << endl;
+    cout << fStartRun << " " << fEndRun << " " << fEName.c_str() << " " << "000" << " " << fPulserChannel.at(i) << " " << slo << " " << sloer << " " << off << " " << offer << endl;
     ds.PutECalMJDB(UnknownChannel.at(i), "Unknown", slo,sloer,off,offer, cov);
   }
 

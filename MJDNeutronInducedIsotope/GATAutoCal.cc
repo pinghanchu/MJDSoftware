@@ -37,11 +37,12 @@
 #include <iostream>
 #include <bitset>
 
-//ClassImp(GATAutoCal)
-
 using namespace std;
 using namespace katrin;
 using namespace MJDB;
+
+//ClassImp(GATAutoCal)
+
 //using namespace GATPeakShapeFunction;
 ///////////////////////////////////////////////////////////////
 // Fitting Function:
@@ -110,11 +111,12 @@ GATAutoCal::GATAutoCal(Int_t StartRun, Int_t EndRun) : fDS(StartRun,EndRun)
 {
   fStartRun = StartRun;
   fEndRun = EndRun;
-  if((fStartRun>0 && fEndRun<30000000) || (fStartRun > 60000000 && fEndRun<65000000)){
-    fMap = fDS.GetChannelMap();
-    fMjdTree = fDS.GetGatifiedChain(false);
-  }
-
+  //if((fStartRun>0 && fEndRun<30000000) || (fStartRun > 60000000 && fEndRun<65000000)){
+  fMap = fDS.GetChannelMap();
+  fMjdTree = fDS.GetGatifiedChain(false);
+  fEntries = fMjdTree->GetEntries();  
+    //}
+ 
   SetCalibrationPeak();
   SetParameters();
 
@@ -133,6 +135,7 @@ Double_t GATAutoCal::IsNan(string Input){
 //Set external mjdTree
 void GATAutoCal::SetMjdTree(TChain *mjdTree){
   fMjdTree = mjdTree;
+  fEntries = fMjdTree->GetEntries();
 }
 
 //Set Initial Parameters: isGood, isEnr, Pulser, PulserCal 
