@@ -1,7 +1,9 @@
 #!/usr/bin/perl
 my $dataset = "P3LQK";
-
+system("make clean");
+system("make");
 system("rm *.csh");
+system("mkdir Hist");
 system("mkdir Plot");
 system("mkdir List");
 my @energy = ("trapENF","trapENM","trapE");
@@ -25,9 +27,9 @@ foreach $ienr (@energy){
 
 	
 	#####Step 1: calibration###############
-	#system("./deletezero.pl");
-	#system("./deletebadhisto.pl");
-	#system("./calibration.pl $startrun $endrun $coverstartrun $coverendrun $enr $inputpath $outputpath");
+	system("./deletezero.pl");
+	system("./deletebadhisto.pl");
+	system("./calibration.pl $startrun $endrun $coverstartrun $coverendrun $enr $inputpath $outputpath");
 	
 	######################################################################
 	
@@ -43,12 +45,12 @@ foreach $ienr (@energy){
 	#####Step 3: upload calibration parameters#########
 	my $inputpath = $home."List/".$startrun."_".$endrun."/calibration_".$startrun."_".$endrun."_".$enr."_*.txt";
 	my $outputfile = $home."List/".$startrun."_".$endrun."/calibration_".$startrun."_".$endrun.".txt";
-	system("cat $inputpath > $outputfile");
+	#system("cat $inputpath > $outputfile");
 	my $inputpath = $home."List/".$startrun."_".$endrun."/cov_".$startrun."_".$endrun."_".$enr."_*.txt";
         my $outputfile = $home."List/".$startrun."_".$endrun."/cov_".$startrun."_".$endrun.".txt";
-	system("cat $inputpath > $outputfile");
-	system("./MkCookie");
+	#system("cat $inputpath > $outputfile");
+	#system("./MkCookie");
 	print $enr,"\n";
-	system("./uploadlinearfit $startrun $endrun $coverstartrun $coverendrun $enr");
+	#system("./uploadlinearfit $startrun $endrun $coverstartrun $coverendrun $enr");
     }
 }

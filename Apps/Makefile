@@ -2,7 +2,7 @@ include $(MGDODIR)/buildTools/config.mk
 
 # Give the list of applications, which must be the stems of cc files with 'main'.  There
 # can be more than one.  In our example, this means there is a test.cc and a test1.cc
-APPS = process_mjd_cal 
+APPS = process_mjd_cal process_mjd_gat1 process_mjd_gat2 process_mjd_comb
 # The next two lines are important 
 SHLIB = 
 ARCHIVE = 
