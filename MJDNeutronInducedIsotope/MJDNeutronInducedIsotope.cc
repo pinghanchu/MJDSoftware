@@ -74,7 +74,7 @@ MJDNeutronInducedIsotope::MJDNeutronInducedIsotope(Int_t Run) : fDS(Run,Run)
   fMTfastTrapNLCWFsnRisingX = NULL;
 
   fMjdTree->SetBranchAddress("channel", &fMTChannel);
-  fMjdTree->SetBranchAddress("trapENFCal", &fMTTrapENFCal);
+  fMjdTree->SetBranchAddress("trapECal", &fMTTrapENFCal);
   fMjdTree->SetBranchAddress("timestamp",&fMTTimestamp);
   fMjdTree->SetBranchAddress("mH",&fMTmH);
   fMjdTree->SetBranchAddress("EventDC1Bits", &fMTEventDC1Bits);
@@ -153,7 +153,7 @@ void MJDNeutronInducedIsotope::SearchDelayedEvent(Double_t fEnr1, Double_t fEnr2
 }
 
 
-void MJDNeutronInducedIsotope::SearchEnergyEvent(Double_t fEnr1, string fOutputFile){
+void MJDNeutronInducedIsotope::SearchEnergyEvent(Double_t fEnr1, Double_t fEnrWindow, string fOutputFile){
   //////////////////////////////////////
   //fEnr1 : the gamma energy
   //////////////////////////////////////
@@ -170,7 +170,7 @@ void MJDNeutronInducedIsotope::SearchEnergyEvent(Double_t fEnr1, string fOutputF
       for(size_t j=0;j<fMTChannel->size();j++){	
 	Int_t chan1 = fMTChannel->at(j);
 	Double_t enr1 = fMTTrapENFCal->at(j);
-	if(abs(enr1-fEnr1)<5 && chan1%2==0){
+	if(abs(enr1-fEnr1)< fEnrWindow && chan1%2==0){
 	  List1.push_back(i);
 	  Chan1.push_back(chan1);
 	  Enr1.push_back(enr1);
@@ -362,4 +362,10 @@ Int_t MJDNeutronInducedIsotope::FindPeaks(TH1D* hist, Double_t Low, Double_t Up,
 
   delete s;
   return npeaks;
+}
+
+Double_t MJDNeutronInducedIsotope::GetMax(TH1* hist, Double_t Low, Double_t Up){
+  hist->GetXaxis()->SetRangeUser(Low,Up);
+  Double_t xmax = hist->GetMaximum();
+  return xmax;
 }

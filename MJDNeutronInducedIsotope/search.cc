@@ -70,7 +70,7 @@ int main(int argc, char** argv)
   Time2.pop_back();
   */
 
-  ds.SearchEnergyEvent(fEnr1,fOutputFile);
+  ds.SearchEnergyEvent(fEnr1,10.,fOutputFile);
 
   ifstream fin(Form("%s",fOutputFile.c_str()));
 
@@ -111,7 +111,7 @@ int main(int argc, char** argv)
   Double_t Xmin = 4000;
   Double_t Xmax = 19000;
   Double_t fResolution = 1;
-  Double_t fThreshold = 0.05;
+  Double_t fThreshold = 0.01;
   Double_t fSigma = 5;
 
   for(size_t i=0;i<index1.size();i++){
@@ -123,16 +123,24 @@ int main(int argc, char** argv)
     yp2.clear();
 
     Int_t ii = index1.at(i);    
+    cout << ii << " " << Entry1.at(ii) << endl;
+    
     TH1D* h = ds.GetWaveform(fRun,Entry1.at(ii),Channel1.at(ii),Enr1.at(ii));
     TH1D* h1 = ds.GetHistoSmooth(h,10);
     TH1D* h2 = ds.GetHistoDerivative(h1,10);
     TH1D* h3 = ds.GetHistoSmooth(h2,10);
     TH1D* h4 = ds.GetHistoDerivative(h3,10);
     TH1D* h5 = ds.GetHistoSmooth(h4,10);
-
     TH1*  hFFT = ds.GetHistoFFT(h);
-    Int_t nPeak1 = ds.FindPeaks(h3, Xmin, Xmax,fResolution,fSigma, fThreshold, &xp, &yp);
-    if(nPeak1>1){
+    // Cut1
+    Double_t max = ds.GetMax(hFFT, 50.,150.); 
+    cout << max << endl;
+    // Cut2 
+
+    if(max<2000){
+      Int_t nPeak1 = ds.FindPeaks(h3, Xmin, Xmax,fResolution,fSigma, fThreshold, &xp, &yp);
+    /*    
+    if(nPeak1>0){
       for(Int_t ip = 0;ip<nPeak1;ip++){
 	Double_t y = ds.GetYValue(h5, xp.at(ip));
 	if(abs(y)<2e-4){
@@ -140,14 +148,18 @@ int main(int argc, char** argv)
 	  yp1.push_back(yp.at(ip));
 	}
       }
-      h3->SetName(Form("waveform1_%d_%d_%d",fRun,Entry1.at(ii),Channel1.at(ii)));
-      h5->SetName(Form("waveform2_%d_%d_%d",fRun,Entry1.at(ii),Channel1.at(ii)));
-      hFFT->SetName(Form("waveformFFT_%d_%d_%d",fRun,Entry1.at(ii),Channel1.at(ii)));
-      h1->Write();
-      h3->Write();
-      h5->Write();
-      hFFT->Write();
-    }
+      if(xp1.size()>1){
+*/
+	h3->SetName(Form("waveform1_%d_%d_%d",fRun,Entry1.at(ii),Channel1.at(ii)));
+	h5->SetName(Form("waveform2_%d_%d_%d",fRun,Entry1.at(ii),Channel1.at(ii)));
+	hFFT->SetName(Form("waveformFFT_%d_%d_%d",fRun,Entry1.at(ii),Channel1.at(ii)));
+	h1->Write();
+	h3->Write();
+	h5->Write();
+	hFFT->Write();
+	//      }
+	//    }
+    /*    
     vector<Int_t> Index1 = ds.Sort(yp1);
     if(xp1.size()>1){
       for(size_t ip1 = Index1.size()-2;ip1<Index1.size();ip1++){
@@ -155,8 +167,9 @@ int main(int argc, char** argv)
 	xp2.push_back(xp1.at(ii));
 	yp2.push_back(yp1.at(ii));
       }
+      cout << yp2.at(1)/yp2.at(0) << " " << xp2.at(0)-xp2.at(1) << endl;
     }
-    cout << yp2.at(1)/yp2.at(0) << " " << xp2.at(0)-xp2.at(1) << endl;
+*/
     delete h;
     delete h1;
     delete h2;

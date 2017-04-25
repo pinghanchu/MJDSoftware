@@ -43,14 +43,14 @@ public:
   virtual inline MJTChannelMap* GetMap(){ return fMap; }
 
   virtual void SearchDelayedEvent(Double_t fEnr1, Double_t fEnr2, Double_t fTime, string fOutputFile);
-  virtual void SearchEnergyEvent(Double_t fEnr1, string fOutputFile);
+  virtual void SearchEnergyEvent(Double_t fEnr1, Double_t fEnrWindow, string fOutputFile);
   virtual TH1D* GetWaveform(Int_t fR,Int_t fEntry, Int_t fChan,Double_t fEnr);
   virtual TH1D* GetHistoSmooth(TH1D* hist, Int_t DeltaBin);
   virtual TH1D* GetHistoDerivative(TH1D* hist, Int_t DeltaBin);
   virtual TH1* GetHistoFFT(TH1D* hist);
-  virtual Int_t FindPeaks(TH1D* hist, Double_t Low, Double_t up, Double_t Resolution, Double_t Sigma, Double_t Threshold, vector<Double_t>* fPositionX, vector<Double_t>* fPositionY);
+  virtual Int_t FindPeaks(TH1D* hist, Double_t Low, Double_t Up, Double_t Resolution, Double_t Sigma, Double_t Threshold, vector<Double_t>* fPositionX, vector<Double_t>* fPositionY);
   virtual Double_t GetYValue(TH1D* hist, Double_t X);
- 
+  virtual Double_t GetMax(TH1* hist, Double_t Low, Double_t Up);
   virtual vector<Int_t> Sort(vector<Double_t> X);
   virtual vector<Int_t> Clean(vector<Double_t> X); 
 
