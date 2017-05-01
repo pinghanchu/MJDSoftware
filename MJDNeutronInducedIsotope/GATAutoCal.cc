@@ -222,7 +222,7 @@ void GATAutoCal::SetParameters()
   //DSPM
   if(fStartRun >= 45000000 && fEndRun<50000000){
     for(Int_t i = 0;i<proChannels;i++){
-      cout << i << " " << GoodBadpro[i] << endl;
+      //cout << i << " " << GoodBadpro[i] << endl;
       fGoodBad.push_back(GoodBadpro[i]);
       fEnriched.push_back(0);
       fPulserCal.push_back(PulserCalpro[i]);

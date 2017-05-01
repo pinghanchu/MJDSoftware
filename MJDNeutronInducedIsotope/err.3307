@@ -1,0 +1,4 @@
+id: cannot find name for group ID 5306
+Info in <TCanvas::MakeDefCanvas>:  created default TCanvas with name c1
+
+ *** Break *** segmentation violation

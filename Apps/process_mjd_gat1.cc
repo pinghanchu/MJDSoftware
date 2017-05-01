@@ -19,9 +19,7 @@
 // 2017.02.28 Clint Wiseman
 // Add GATThresholdReader (takes a ROOT input file)
 // Add a check that pulser and threshold files exist
-// 2017.04.17 Pinghan Chu
-// Remove parameters depending on Database
-// 
+
 #include <ctime> //clock_t
 #include "TFile.h"
 #include "TTree.h"
@@ -84,7 +82,7 @@
 
 using namespace std;
 using namespace CLHEP;
-//using namespace MJDB;
+using namespace MJDB;
 
 int main(int argc, char** argv)
 {
@@ -148,7 +146,7 @@ int main(int argc, char** argv)
   // Set up access to Analysis Parameters Database
   // Processors can use this pointer for common access.
   // No constructor args means we are communicating with the default APDB
-  //MJAnalysisDoc* analysisDoc = new MJAnalysisDoc();
+  MJAnalysisDoc* analysisDoc = new MJAnalysisDoc();
   //analysisDoc->SetAlternateDB("mjdb.phy.ornl.gov", "mjdbsandbox", "6984", "https", "mjd"); //use the sandbox DB
 
   // prepare selector and writer so we can add to them as we go
@@ -364,7 +362,6 @@ int main(int argc, char** argv)
   // Trapezoidal filters
   // ********************
 
-
   // shorter trapezoid for offline re-triggering
   GATTrapezoidalFilter triggerTrapFilter("nlcblrwf", "triggerTrap");
   triggerTrapFilter.GetTransform().SetDoNormalize();
@@ -454,7 +451,6 @@ int main(int argc, char** argv)
   optTrapTailMinProc.GetExtremumFinder().SetLocalMinimumTime(10000.*ns);
   selector.AddInput(&optTrapTailMinProc);
   mjdDataWriter.AddPostedVector(optTrapTailMinProc.GetNameOfPostedVector());
-
 
   // trap slope filters, "TSCurrentxxMax"
   vector<double> intTimes; vector<string> itLabels; vector<bool> tsitDoTPs;
@@ -581,9 +577,9 @@ int main(int argc, char** argv)
   // *************************
   // Noise Power Spectrum
   // *************************
-  /*
-  // Do DFT of second derivative waveforms
 
+  // Do DFT of second derivative waveforms
+  /*
   MGPCNoiseBands nb("MGPCNoiseBands");
   vector<pair<double,double> > bandBoundaries;
   bandBoundaries.push_back(make_pair(0*MHz,2*MHz));
@@ -668,7 +664,7 @@ int main(int argc, char** argv)
   dc_NegSatWFs.SetInIsBad(true);
   dc_NegSatWFs.AddDimension("rawWFMin",1,-8192,1,-8190);
   selector.AddInput(&dc_NegSatWFs);
-  */
+*/
   //Fast trap for transition layer multi-site detection
   MGWFTrapezoidalFilter fastTrap;
   fastTrap.SetDoNormalize();
@@ -704,15 +700,15 @@ int main(int argc, char** argv)
   selector.AddInput(&pileUpProc);
   //mjdDataWriter.AddPostedVector(pileUpProc.GetNameOfPostedVector());
   //mjdDataWriter.AddPostedVector(pileUpProc.GetNameOfPostedRisingTimeVector());
-  /*
+
   GATDCBoxCut dc_PileUpWFs("PileUpWFs"); // wfDCBits 8
   dc_PileUpWFs.SetInIsBad(false);
   dc_PileUpWFs.AddDimension("pileUpTrapNLCWFsnRisingX",0, 0, 1, 2);//number of rising threshold crossings of pile-up trap filter
   selector.AddInput(&dc_PileUpWFs);
-  */
   //mjdDataWriter.AddPostedVector(dc_PileUpWFs.GetNameOfPostedVector());
-  /*
+
   // Set the bits
+  /*
   GATWFDataCleaningProcessor wfdcProc("wfDC");
   mjdDataWriter.AddPostedVector(wfdcProc.GetNameOfPostedObject());
   wfdcProc.SetBitParameter(0,"SSPosSpikeBL");
@@ -763,12 +759,10 @@ int main(int argc, char** argv)
     if(inputFileName.find("/") != string::npos) {
       inputFileName = inputFileName.substr(inputFileName.find_last_of("/")+1);
     }
-    cout << inputFileName.c_str() << endl;
     if(inputFileName.find("OR") != string::npos) {
       inputFileName = inputFileName.substr(inputFileName.find_last_of("OR")+1);
     }
-    cout << inputFileName.c_str() << endl;
-    TFile* outputFileReopen=TFile::Open(("gat"+inputFileName).c_str(), "UPDATE");
+    TFile* outputFileReopen=TFile::Open(("mjd"+inputFileName).c_str(), "UPDATE");
     outputFileReopen->cd();
     if(MCATree != NULL) {
       cout<<"Add MCA Tree"<<endl;
@@ -793,7 +787,7 @@ int main(int argc, char** argv)
   timer = clock() - timer;
   cout << "Processing took " << ((float)timer)/CLOCKS_PER_SEC/60.0 << " minutes." << endl;
 
-  //delete analysisDoc;
+  delete analysisDoc;
   return 0;
 }
 

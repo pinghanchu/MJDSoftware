@@ -74,7 +74,7 @@ MJDNeutronInducedIsotope::MJDNeutronInducedIsotope(Int_t Run) : fDS(Run,Run)
   fMTfastTrapNLCWFsnRisingX = NULL;
 
   fMjdTree->SetBranchAddress("channel", &fMTChannel);
-  fMjdTree->SetBranchAddress("trapECal", &fMTTrapENFCal);
+  fMjdTree->SetBranchAddress("trapENFCal", &fMTTrapENFCal);
   fMjdTree->SetBranchAddress("timestamp",&fMTTimestamp);
   fMjdTree->SetBranchAddress("mH",&fMTmH);
   fMjdTree->SetBranchAddress("EventDC1Bits", &fMTEventDC1Bits);
@@ -99,7 +99,8 @@ void MJDNeutronInducedIsotope::SearchDelayedEvent(Double_t fEnr1, Double_t fEnr2
       for(size_t j=0;j<fMTChannel->size();j++){	
 	Int_t chan1 = fMTChannel->at(j);
 	Double_t enr1 = fMTTrapENFCal->at(j);
-	if(abs(enr1-fEnr1)<5 && chan1%2==0){
+	Int_t index1 = detid[chan1];
+	if(abs(enr1-fEnr1)<5 && chan1%2==0 && fGoodBad.at(index1) == 1){
 	  List1.push_back(i);
 	  Chan1.push_back(chan1);
 	  Enr1.push_back(enr1);
@@ -158,7 +159,11 @@ void MJDNeutronInducedIsotope::SearchEnergyEvent(Double_t fEnr1, Double_t fEnrWi
   //fEnr1 : the gamma energy
   //////////////////////////////////////
   map<int,int> detid;
-  for(size_t i=0; i<fChannel.size(); i++) detid[fChannel.at(i)]= i;
+  //cout << fChannel.size() << endl;
+  for(size_t i=0; i<fChannel.size(); i++) {    
+    detid[fChannel.at(i)]= i;
+  }
+
   ofstream fout(Form("%s",fOutputFile.c_str()));
   fout.precision(15);
   vector<Int_t> List1;
@@ -170,17 +175,21 @@ void MJDNeutronInducedIsotope::SearchEnergyEvent(Double_t fEnr1, Double_t fEnrWi
       for(size_t j=0;j<fMTChannel->size();j++){	
 	Int_t chan1 = fMTChannel->at(j);
 	Double_t enr1 = fMTTrapENFCal->at(j);
-	if(abs(enr1-fEnr1)< fEnrWindow && chan1%2==0){
+	Int_t index1 = detid[chan1];
+	if(abs(enr1-fEnr1)< fEnrWindow && chan1%2==0 && fGoodBad.at(index1) == 1){
+	  //if(abs(enr1-fEnr1)<fEnrWindow){
 	  List1.push_back(i);
 	  Chan1.push_back(chan1);
-	  Enr1.push_back(enr1);
+	  Enr1.push_back(enr1);	  
 	}
       }
     }
   }
-
-  for(size_t i=0;i<List1.size();i++){
-    fout << fRun << " " << List1.at(i) << " " << Chan1.at(i) << " " << Enr1.at(i) << endl;
+  cout << "How many events in the energy window:" << List1.size() << endl;
+  if(List1.size()>0){
+    for(size_t i=0;i<List1.size();i++){
+      fout << fRun << " " << List1.at(i) << " " << Chan1.at(i) << " " << Enr1.at(i) << endl;
+    }
   }
 }
 
@@ -206,16 +215,27 @@ TH1D* MJDNeutronInducedIsotope::GetHistoSmooth(TH1D* hist, Int_t DeltaBin){
   h->Reset(0);
   Int_t entries = hist->GetEntries();
   Double_t biny=0;
+  Double_t biny1=0;
+  Double_t biny2=0;
   Double_t ave1=0;
   Double_t ave2=0;
   for(Int_t i1 = DeltaBin;i1<entries-DeltaBin;i1++){
     Double_t fDummySum=0;
     Double_t fDummyAve=0;
+    Int_t count = 0;
     for(Int_t i2 = i1-DeltaBin;i2<i1+DeltaBin;i2++){
       biny = hist->GetBinContent(i2);
-      fDummySum = fDummySum+biny;
+      biny1 = hist->GetBinContent(i2-1);
+      biny2 = hist->GetBinContent(i2+1);
+      
+      if(abs(biny-biny1)>10 || abs(biny-biny2)>10){
+	fDummySum = fDummySum;	
+      }else{
+	fDummySum = fDummySum+biny;
+	count++;
+      }
     }
-    fDummyAve = fDummySum/(2*DeltaBin);
+    fDummyAve = fDummySum/(count);
     h->SetBinContent(i1,fDummyAve);
     if(i1==DeltaBin){
       ave1 = fDummyAve;
@@ -359,7 +379,7 @@ Int_t MJDNeutronInducedIsotope::FindPeaks(TH1D* hist, Double_t Low, Double_t Up,
       fPositionY->push_back(ypeaks[i]);
     }
   }
-
+  npeaks = fPositionX->size();
   delete s;
   return npeaks;
 }

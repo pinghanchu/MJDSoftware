@@ -89,8 +89,8 @@ using namespace MJDB;
 int main(int argc, char** argv)
 {
   // Give usage info for no input (user must supply an input file)
-  if(argc < 2 || argc > 3) {
-    cout << "Usage: " << argv[0] << " [file] (calibrationMapFile)" << endl;
+  if(argc < 3 || argc > 4) {
+    cout << "Usage: " << argv[0] << " [file] [gat file] (calibrationMapFile)" << endl;
     return 1;
   }
 
@@ -99,8 +99,7 @@ int main(int argc, char** argv)
   timer = clock();
 
   string calibrationMapFile = "";
-  if(argc == 3) calibrationMapFile = argv[2];
-
+  if(argc == 4) calibrationMapFile = argv[3];
 
   // *******************************
   // Pull stuff out from input files
@@ -110,17 +109,28 @@ int main(int argc, char** argv)
   TFile* file = TFile::Open(argv[1]);
   if(file == NULL) return 0;
 
+  TFile* gatfile = TFile::Open(argv[2]);
+  if(gatfile == NULL) return 0;
+
   // find MGTEvent tree in input file
   TTree* MGTree = (TTree*) file->Get("MGTree");
   if(MGTree == NULL) {
     cout << "MGTree not found" << endl;
     return 0;
   }
+
   // find MGTEvent tree in input file
   TTree* MCATree = (TTree*) file->Get("MCATree");
   if(MCATree == NULL) {
     cout << "MCATree not found. Continue" << endl;
   }
+
+  // find mjdTree
+  TTree* mjdTree = (TTree*) gatfile->Get("mjdTree");
+  if(mjdTree == NULL) {
+    cout << "mjdTree not found. Continue" <<endl;
+  }
+
   // find MJTChannelMap in input file
   MJTChannelMap* ChanMap = (MJTChannelMap*) file->Get("ChannelMap");
   if(ChanMap == NULL) {
@@ -153,7 +163,7 @@ int main(int argc, char** argv)
 
   // prepare selector and writer so we can add to them as we go
   TAMSelector selector;
-  GATPostedDataTreeWriter mjdDataWriter("mjd"); //the name mjd is also used at the end
+  GATPostedDataTreeWriter mjdDataWriter("enr"); //the name mjd is also used at the end
 
   // ****************************************************
   // Copy stuff from the input to the output and intercom
@@ -165,6 +175,9 @@ int main(int argc, char** argv)
   inputDataPoster.PostInputLeafVector("fDigitizerData.fTimeStamp","timestamp");
   inputDataPoster.PostInputLeafVector("fDigitizerData.fID","channel");
   inputDataPoster.PostInputLeafVector("fDigitizerData.fIndex","index");
+  //inputDataPoster.PostInputLeafVector("trapENF","trapENF");
+  //inputDataPoster.PostInputLeafVector("trapE","trapE");
+  //inputDataPoster.PostInputLeafVector("trapENM","trapENM");
   selector.AddInput(&inputDataPoster);
 
   // add items to copy over from original tree
@@ -363,7 +376,7 @@ int main(int argc, char** argv)
   // ********************
   // Trapezoidal filters
   // ********************
-
+  /*
   // shorter trapezoid for offline re-triggering
   GATTrapezoidalFilter triggerTrapFilter("nlcblrwf", "triggerTrap");
   triggerTrapFilter.GetTransform().SetDoNormalize();
@@ -453,6 +466,7 @@ int main(int argc, char** argv)
   optTrapTailMinProc.GetExtremumFinder().SetLocalMinimumTime(10000.*ns);
   selector.AddInput(&optTrapTailMinProc);
   mjdDataWriter.AddPostedVector(optTrapTailMinProc.GetNameOfPostedVector());
+  */
   /*
   // trap slope filters, "TSCurrentxxMax"
   vector<double> intTimes; vector<string> itLabels; vector<bool> tsitDoTPs;
