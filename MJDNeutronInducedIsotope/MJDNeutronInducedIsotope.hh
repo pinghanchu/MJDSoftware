@@ -61,10 +61,10 @@ protected:
 
   size_t fEntries;
   Int_t fRun;
-  UInt_t fGATRev;
+  //UInt_t fGATRev;
   Int_t fIsRadio;
-  Double_t fMTStartTime;
-  Double_t fMTStopTime;
+  //Double_t fMTStartTime;
+  //Double_t fMTStopTime;
   string fDataSet;
   vector<Int_t> fChannel;
   vector<Int_t> fPulserTagChannel;

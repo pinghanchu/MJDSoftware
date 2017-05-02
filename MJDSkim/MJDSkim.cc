@@ -1,4 +1,4 @@
-#include "MJDNeutronInducedIsotope.hh"
+#include "MJDSkim.hh"
 #include "GATAutoCal.hh"
 #include "MJTRun.hh"
 #include "MJAnalysisDoc.hh"
@@ -35,7 +35,7 @@
 #include <iostream>
 #include <bitset>
 
-//ClassImp(MJDNeutronInducedIsotope)
+//ClassImp(MJDSkim)
 
 using namespace std;
 using namespace katrin;
@@ -45,42 +45,80 @@ using namespace MJDB;
 ////////////////////////////////////////////////////////
 
 //Set ChannelMap, mjdTree (from GATDataSet), CalibrationPeak, Initial Parameters
-MJDNeutronInducedIsotope::MJDNeutronInducedIsotope(Int_t Run) : fDS(Run,Run)
+MJDSkim::MJDSkim(Int_t fDataSet) 
 {
-  fMjdTree = fDS.GetMJDTree();
-  fMap = fDS.GetMap();
-  fEntries = fDS.GetEntries();
-  fRun = Run;
-  //fGATRev = fDS.GetGATRev();
-  fIsRadio = fDS.GetIsRadio();
-  //fMTStartTime = fDS.GetStartTime();
-  //fMTStopTime = fDS.GetStopTime();
-  fDataSet = fDS.GetDataSet();
-  fChannel = fDS.GetChannel();;
-  fPulserTagChannel = fDS.GetPulserChannel();
-  fCryo = fDS.GetCryo();
-  fString = fDS.GetString();
-  fDetector = fDS.GetDetPosition();
-  fGoodBad = fDS.GetGoodBad();
-  fEnriched = fDS.GetEnriched();
-  fDetectorName = fDS.GetDetectorName();
 
-  fMjdTree->SetBranchStatus("*",1);
+  if(fDataSet == 0){
+    fSkimTree = new TChain("skimTree");
+    for(Int_t i =0;i<77;i++){
+      fSkimTree->Add(Form("$MJDDATADIR/surfmjd/analysis/skim/DS0/skimgatrev_177648893/skimDS0_%d.root",i));
+    }
+  }else if(fDataSet == 1){    
+    fSkimTree = new TChain("skimTree");
+    for(Int_t i =0;i<52;i++){
+      fSkimTree->Add(Form("$MJDDATADIR/surfmjd/analysis/skim/DS1/skimgatrev_177648893/skimDS1_%d.root",i));
+    }
+  }else if(fDataSet == 2){
+    fSkimTree = new TChain("skimTree");
+    for(Int_t i =0;i<8;i++){
+      fSkimTree->Add(Form("$MJDDATADIR/surfmjd/analysis/skim/DS2/skimgatrev_177648893/skimDS2_%d.root",i));
+    }
+  }else if(fDataSet == 3){
+    fSkimTree = new TChain("skimTree");
+    for(Int_t i =0;i<25;i++){
+      fSkimTree->Add(Form("$MJDDATADIR/surfmjd/analysis/skim/DS3/skimgatrev_177648893/skimDS3_%d.root",i));
+    }
+  }else if(fDataSet == 4){
+    fSkimTree = new TChain("skimTree");
+    for(Int_t i =0;i<23;i++){
+      fSkimTree->Add(Form("$MJDDATADIR/surfmjd/analysis/skim/DS4/skimgatrev_177648893/skimDS4_%d.root",i));
+    }
+  }else if(fDataSet == 5){
+    fSkimTree = new TChain("skimTree");
+    for(Int_t i =0;i<60;i++){
+      fSkimTree->Add(Form("$MJDDATADIR/surfmjd/analysis/skim/DS5/skimgatrev_177648893/skimDS5_%d.root",i));
+    }
+  }else{
+    cout << "No this data set!" << endl;
+  }
+  fSkimTree->SetBranchStatus("*",1);
+  
+  //fHit = NULL;
 
-  fMTChannel = NULL;
-  fMTTrapENFCal = NULL;
-  fMTTimestamp = NULL;
-  fMTfastTrapNLCWFsnRisingX = NULL;
+  fChannel = NULL;
+  fP = NULL;
+  fD = NULL;
+  fC = NULL;
+  fGain = NULL;
+  fIsEnr = NULL;
+  fIsNat = NULL;
+  fIsGood = NULL;
+  fTrapENFCal = NULL;
+  fTimestamp = NULL;
+  fnX = NULL;
 
-  fMjdTree->SetBranchAddress("channel", &fMTChannel);
-  fMjdTree->SetBranchAddress("trapENFCal", &fMTTrapENFCal);
-  fMjdTree->SetBranchAddress("timestamp",&fMTTimestamp);
-  fMjdTree->SetBranchAddress("mH",&fMTmH);
-  fMjdTree->SetBranchAddress("EventDC1Bits", &fMTEventDC1Bits);
-  fMjdTree->SetBranchAddress("fastTrapNLCWFsnRisingX", &fMTfastTrapNLCWFsnRisingX);
+  fSkimTree->SetBranchAddress("run", &fRun);
+  fSkimTree->SetBranchAddress("iEvent", &fEvent);
+  //fSkimTree->SetBranchAddress("iHit",&fHit);
+  fSkimTree->SetBranchAddress("channel",&fChannel);
+  fSkimTree->SetBranchAddress("P",&fP);
+  fSkimTree->SetBranchAddress("D",&fD);
+  fSkimTree->SetBranchAddress("C",&fC);
+  fSkimTree->SetBranchAddress("gain",&fGain);
+  fSkimTree->SetBranchAddress("isEnr",&fIsEnr);
+  fSkimTree->SetBranchAddress("isNat",&fIsNat);
+  fSkimTree->SetBranchAddress("isGood",&fIsGood);
+  fSkimTree->SetBranchAddress("trapENFCal", &fTrapENFCal);
+  fSkimTree->SetBranchAddress("time_s",&fTimestamp);
+  fSkimTree->SetBranchAddress("mHClean",&fmH);
+  fSkimTree->SetBranchAddress("nX",&fnX);
+
+  fSkimTree->GetEntry(0);
+  fEntries = fSkimTree->GetEntries();
+
 }
-
-void MJDNeutronInducedIsotope::SearchDelayedEvent(Double_t fEnr1, Double_t fEnr2, Double_t fTime, string fOutputFile){
+/*
+void MJDSkim::SearchDelayedEvent(Double_t fEnr1, Double_t fEnr2, Double_t fTime, string fOutputFile){
   //////////////////////////////////////
   //fEnr1 : the second gamma energy
   //fEnr2 : the first Q value
@@ -93,7 +131,7 @@ void MJDNeutronInducedIsotope::SearchDelayedEvent(Double_t fEnr1, Double_t fEnr2
   vector<Int_t> Chan1;
   vector<Double_t> Enr1;
   for(size_t i=0;i<fEntries;i++){
-    fMjdTree->GetEntry(i);
+    fSkimTree->GetEntry(i);
     if(fMTEventDC1Bits == 0){
       for(size_t j=0;j<fMTChannel->size();j++){	
 	Int_t chan1 = fMTChannel->at(j);
@@ -117,12 +155,12 @@ void MJDNeutronInducedIsotope::SearchDelayedEvent(Double_t fEnr1, Double_t fEnr2
   vector<Double_t> Time3;
   if((Int_t)List1.size()>0){
     for(size_t i=0;i<List1.size();i++){
-      fMjdTree->GetEntry(List1.at(i));
+      fSkimTree->GetEntry(List1.at(i));
       Double_t time1 = fMTTimestamp->at(0)/1e8;
       Double_t time2 = time1;
       Int_t ii = List1.at(i)-1;
       while(abs(time1-time2)<fTime*200 && ii>0){
-	fMjdTree->GetEntry(ii);
+	fSkimTree->GetEntry(ii);
 	time2 = fMTTimestamp->at(0)/1e8;
 	if(fMTEventDC1Bits == 0){	  
 	  for(size_t j=0;j<fMTChannel->size();j++){
@@ -151,53 +189,37 @@ void MJDNeutronInducedIsotope::SearchDelayedEvent(Double_t fEnr1, Double_t fEnr2
 	 << List3.at(i) << " " << Chan3.at(i) << " " << Enr3.at(i) << " " << Time3.at(i)<<endl;
   }
 }
+*/
 
-
-void MJDNeutronInducedIsotope::SearchEnergyEvent(Double_t fEnr, Double_t fEnrWindow, string fOutputFile){
+void MJDSkim::SearchEnergyEvent(Double_t fEnr, Double_t fEnrWindow, string fOutputFile){
   //////////////////////////////////////
   //fEnr1 : the gamma energy
   //////////////////////////////////////
-  map<int,int> detid;
-  //cout << fChannel.size() << endl;
-  for(size_t i=0; i<fChannel.size(); i++) {    
-    detid[fChannel.at(i)]= i;
-  }
-
   ofstream fout(Form("%s",fOutputFile.c_str()));
   fout.precision(15);
-  vector<Int_t> List1;
-  vector<Int_t> Chan1;
-  vector<Double_t> Enr1;
   for(size_t i=0;i<fEntries;i++){
-    fMjdTree->GetEntry(i);
-    cout << i << " " << fMTEventDC1Bits << endl;
-    if(fMTEventDC1Bits == 0){
-      for(size_t j=0;j<fMTChannel->size();j++){	
-	Int_t chan1 = fMTChannel->at(j);
-	Double_t enr1 = fMTTrapENFCal->at(j);
-	Int_t index1 = detid[chan1];
-	if(abs(enr1-fEnr)< fEnrWindow && chan1%2==0 && fGoodBad.at(index1) == 1){
-	  //if(abs(enr1-fEnr1)<fEnrWindow){
-	  List1.push_back(i);
-	  Chan1.push_back(chan1);
-	  Enr1.push_back(enr1);	  
-	  fout << fRun << " " << i << " " << chan1 << " " << enr1 << endl;
-	}
-      }
+    fSkimTree->GetEntry(i);
+    Int_t irun = fRun;
+    Int_t ievent = fEvent;
+    for(size_t j=0;j<fChannel->size();j++){
+      Int_t ichan = fChannel->at(j);
+      Int_t ic = fC->at(j);
+      Int_t ip = fP-> at(j);
+      Int_t id = fD->at(j);
+      Int_t isGood = (Int_t)fIsGood->at(j);
+      Double_t ienr = fTrapENFCal->at(j);
+      Int_t inX = fnX->at(j);
+      string pos = Form("%d%d%d",ic,ip,id);
+      if(abs(ienr-fEnr)< fEnrWindow && ichan%2==0 && isGood == 1){
+	fout << irun << " " << ievent << " " << pos.c_str() << " "<< ichan << " "
+	     << ienr << " "<< inX << endl;	    
+      }      
     }
   }
-
-  /*  cout << "How many events in the energy window:" << List1.size() << endl;
-  if(List1.size()>0){
-    for(size_t i=0;i<List1.size();i++){
-      fout << fRun << " " << List1.at(i) << " " << Chan1.at(i) << " " << Enr1.at(i) << endl;
-    }
-  }
-  */
 }
 
 
-TH1D* MJDNeutronInducedIsotope::GetWaveform(Int_t fR,Int_t fEntry, Int_t fChan,Double_t fEnr){
+TH1D* MJDSkim::GetWaveform(Int_t fR,Int_t fEntry, Int_t fChan,Double_t fEnr){
   GATDataSet ds(fR);
   Int_t Entry = fEntry+1;
   TCut cut1 = Form("channel == %d", fChan);
@@ -213,7 +235,7 @@ TH1D* MJDNeutronInducedIsotope::GetWaveform(Int_t fR,Int_t fEntry, Int_t fChan,D
 
 
 
-TH1D* MJDNeutronInducedIsotope::GetHistoSmooth(TH1D* hist, Int_t DeltaBin){
+TH1D* MJDSkim::GetHistoSmooth(TH1D* hist, Int_t DeltaBin){
   TH1D *h = (TH1D*)hist->Clone();
   h->Reset(0);
   Int_t entries = hist->GetEntries();
@@ -257,7 +279,7 @@ TH1D* MJDNeutronInducedIsotope::GetHistoSmooth(TH1D* hist, Int_t DeltaBin){
 }
 
 
-TH1D* MJDNeutronInducedIsotope::GetHistoDerivative(TH1D* hist, Int_t DeltaBin){
+TH1D* MJDSkim::GetHistoDerivative(TH1D* hist, Int_t DeltaBin){
   TH1D *h = (TH1D*)hist->Clone();
   h->Reset(0);
   Int_t entries = hist->GetEntries();
@@ -289,7 +311,7 @@ TH1D* MJDNeutronInducedIsotope::GetHistoDerivative(TH1D* hist, Int_t DeltaBin){
 }
 
 
-TH1* MJDNeutronInducedIsotope::GetHistoFFT(TH1D* hist){
+TH1* MJDSkim::GetHistoFFT(TH1D* hist){
   TH1 *h = NULL;
   TVirtualFFT::SetTransform(0);
   h = hist->FFT(h,"MAG");
@@ -297,7 +319,7 @@ TH1* MJDNeutronInducedIsotope::GetHistoFFT(TH1D* hist){
 }
 
 
-vector<Int_t> MJDNeutronInducedIsotope::Sort(vector<Double_t> X){
+vector<Int_t> MJDSkim::Sort(vector<Double_t> X){
   Int_t n = X.size();
   const Int_t n1 = n;
   Double_t x1[n1];
@@ -313,7 +335,7 @@ vector<Int_t> MJDNeutronInducedIsotope::Sort(vector<Double_t> X){
   return Index;
 }
 
-vector<Int_t> MJDNeutronInducedIsotope::Clean(vector<Double_t> X){
+vector<Int_t> MJDSkim::Clean(vector<Double_t> X){
 
   vector<Int_t> Index;
   Index.push_back(0);
@@ -332,7 +354,7 @@ vector<Int_t> MJDNeutronInducedIsotope::Clean(vector<Double_t> X){
   return Index;
 }
 
-Double_t MJDNeutronInducedIsotope::GetYValue(TH1D* hist, Double_t X){
+Double_t MJDSkim::GetYValue(TH1D* hist, Double_t X){
   Double_t binwidth= hist->GetBinWidth(1);
   Double_t binx=0;
   Double_t biny=0;
@@ -346,7 +368,7 @@ Double_t MJDNeutronInducedIsotope::GetYValue(TH1D* hist, Double_t X){
   }
   return Y;
 }
-Int_t MJDNeutronInducedIsotope::FindPeaks(TH1D* hist, Double_t Low, Double_t Up, Double_t Resolution, Double_t Sigma, Double_t Threshold, vector<Double_t>* fPositionX, vector<Double_t>* fPositionY){
+Int_t MJDSkim::FindPeaks(TH1D* hist, Double_t Low, Double_t Up, Double_t Resolution, Double_t Sigma, Double_t Threshold, vector<Double_t>* fPositionX, vector<Double_t>* fPositionY){
   Double_t baseline = 0;
   Double_t blrms = 0;
   Int_t count =0;
@@ -387,7 +409,7 @@ Int_t MJDNeutronInducedIsotope::FindPeaks(TH1D* hist, Double_t Low, Double_t Up,
   return npeaks;
 }
 
-Double_t MJDNeutronInducedIsotope::GetMax(TH1* hist, Double_t Low, Double_t Up){
+Double_t MJDSkim::GetMax(TH1* hist, Double_t Low, Double_t Up){
   hist->GetXaxis()->SetRangeUser(Low,Up);
   Double_t xmax = hist->GetMaximum();
   return xmax;

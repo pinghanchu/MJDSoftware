@@ -10,13 +10,15 @@ using namespace std;
 
 int main(int argc, char** argv)
 {
-  if(argc != 2 || atoi(argv[1]) == 0) {
-    cout << "Usage: " << argv[0] << " [run]" << endl;
+  if(argc != 4 || atoi(argv[1]) == 0) {
+    cout << "Usage: " << argv[0] << " [run] [energy] [window" << endl;
     return 1;
   }
 
   Int_t fRun = atoi(argv[1]);
- 
+  Double_t fEnergy = atof(argv[2]);
+  Double_t fWindow = atof(argv[3]);
+
   MJDNeutronInducedIsotope ds(fRun);
   //ds.SetEnergyName(fEnergyName);
   string fDataSet = ds.GetDataSet();
@@ -25,7 +27,7 @@ int main(int argc, char** argv)
   vector<Int_t> fStr = ds.GetString();
   vector<Int_t> fDetpos = ds.GetDetPosition();
 
-  Double_t fEnr1 = 66.7;
+  Double_t fEnr1 = fEnergy;
   Double_t fEnr2 = 10000;
   Double_t fTime = 0.5;
   string fOutputFile = Form("data_%d.txt",fRun);
@@ -70,7 +72,7 @@ int main(int argc, char** argv)
   Time2.pop_back();
   */
 
-  ds.SearchEnergyEvent(fEnr1,10.,fOutputFile);
+  ds.SearchEnergyEvent(fEnr1,fWindow,fOutputFile);
 
   ifstream fin(Form("%s",fOutputFile.c_str()));
 
