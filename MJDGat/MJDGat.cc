@@ -1,4 +1,4 @@
-#include "MJDNeutronInducedIsotope.hh"
+#include "MJDGat.hh"
 #include "GATAutoCal.hh"
 #include "MJTRun.hh"
 #include "MJAnalysisDoc.hh"
@@ -35,7 +35,7 @@
 #include <iostream>
 #include <bitset>
 
-//ClassImp(MJDNeutronInducedIsotope)
+//ClassImp(MJDGat)
 
 using namespace std;
 using namespace katrin;
@@ -45,7 +45,7 @@ using namespace MJDB;
 ////////////////////////////////////////////////////////
 
 //Set ChannelMap, mjdTree (from GATDataSet), CalibrationPeak, Initial Parameters
-MJDNeutronInducedIsotope::MJDNeutronInducedIsotope(Int_t Run) : fDS(Run,Run)
+MJDGat::MJDGat(Int_t Run) : fDS(Run,Run)
 {
   fMjdTree = fDS.GetMJDTree();
   fMap = fDS.GetMap();
@@ -80,7 +80,7 @@ MJDNeutronInducedIsotope::MJDNeutronInducedIsotope(Int_t Run) : fDS(Run,Run)
   fMjdTree->SetBranchAddress("fastTrapNLCWFsnRisingX", &fMTfastTrapNLCWFsnRisingX);
 }
 
-void MJDNeutronInducedIsotope::SearchDelayedEvent(Double_t fEnr1, Double_t fEnr2, Double_t fTime, string fOutputFile){
+void MJDGat::SearchDelayedEvent(Double_t fEnr1, Double_t fEnr2, Double_t fTime, string fOutputFile){
   //////////////////////////////////////
   //fEnr1 : the second gamma energy
   //fEnr2 : the first Q value
@@ -153,7 +153,7 @@ void MJDNeutronInducedIsotope::SearchDelayedEvent(Double_t fEnr1, Double_t fEnr2
 }
 
 
-void MJDNeutronInducedIsotope::SearchEnergyEvent(Double_t fEnr, Double_t fEnrWindow, string fOutputFile){
+void MJDGat::SearchEnergyEvent(Double_t fEnr, Double_t fEnrWindow, string fOutputFile){
   //////////////////////////////////////
   //fEnr1 : the gamma energy
   //////////////////////////////////////
@@ -165,39 +165,29 @@ void MJDNeutronInducedIsotope::SearchEnergyEvent(Double_t fEnr, Double_t fEnrWin
 
   ofstream fout(Form("%s",fOutputFile.c_str()));
   fout.precision(15);
-  vector<Int_t> List1;
-  vector<Int_t> Chan1;
-  vector<Double_t> Enr1;
+  //vector<Int_t> List1;
+  //vector<Int_t> Chan1;
+  //vector<Double_t> Enr1;
   for(size_t i=0;i<fEntries;i++){
     fMjdTree->GetEntry(i);
-    cout << i << " " << fMTEventDC1Bits << endl;
+    //cout << i << " " << fMTEventDC1Bits << endl;
     if(fMTEventDC1Bits == 0){
       for(size_t j=0;j<fMTChannel->size();j++){	
-	Int_t chan1 = fMTChannel->at(j);
-	Double_t enr1 = fMTTrapENFCal->at(j);
-	Int_t index1 = detid[chan1];
-	if(abs(enr1-fEnr)< fEnrWindow && chan1%2==0 && fGoodBad.at(index1) == 1){
-	  //if(abs(enr1-fEnr1)<fEnrWindow){
-	  List1.push_back(i);
-	  Chan1.push_back(chan1);
-	  Enr1.push_back(enr1);	  
-	  fout << fRun << " " << i << " " << chan1 << " " << enr1 << endl;
+	Int_t chan = fMTChannel->at(j);
+	Double_t enr = fMTTrapENFCal->at(j);
+	Int_t index = detid[chan];
+	Double_t nX = fMTfastTrapNLCWFsnRisingX->at(j);
+	if(abs(enr-fEnr)< fEnrWindow && chan%2==0 && fGoodBad.at(index) == 1){
+	  fout << fRun << " " << i << " " << chan << " " << enr << " " << nX << endl;
 	}
       }
     }
   }
 
-  /*  cout << "How many events in the energy window:" << List1.size() << endl;
-  if(List1.size()>0){
-    for(size_t i=0;i<List1.size();i++){
-      fout << fRun << " " << List1.at(i) << " " << Chan1.at(i) << " " << Enr1.at(i) << endl;
-    }
-  }
-  */
 }
 
 
-TH1D* MJDNeutronInducedIsotope::GetWaveform(Int_t fR,Int_t fEntry, Int_t fChan,Double_t fEnr){
+TH1D* MJDGat::GetWaveform(Int_t fR,Int_t fEntry, Int_t fChan,Double_t fEnr){
   GATDataSet ds(fR);
   Int_t Entry = fEntry+1;
   TCut cut1 = Form("channel == %d", fChan);
@@ -213,7 +203,7 @@ TH1D* MJDNeutronInducedIsotope::GetWaveform(Int_t fR,Int_t fEntry, Int_t fChan,D
 
 
 
-TH1D* MJDNeutronInducedIsotope::GetHistoSmooth(TH1D* hist, Int_t DeltaBin){
+TH1D* MJDGat::GetHistoSmooth(TH1D* hist, Int_t DeltaBin){
   TH1D *h = (TH1D*)hist->Clone();
   h->Reset(0);
   Int_t entries = hist->GetEntries();
@@ -257,7 +247,7 @@ TH1D* MJDNeutronInducedIsotope::GetHistoSmooth(TH1D* hist, Int_t DeltaBin){
 }
 
 
-TH1D* MJDNeutronInducedIsotope::GetHistoDerivative(TH1D* hist, Int_t DeltaBin){
+TH1D* MJDGat::GetHistoDerivative(TH1D* hist, Int_t DeltaBin){
   TH1D *h = (TH1D*)hist->Clone();
   h->Reset(0);
   Int_t entries = hist->GetEntries();
@@ -289,7 +279,7 @@ TH1D* MJDNeutronInducedIsotope::GetHistoDerivative(TH1D* hist, Int_t DeltaBin){
 }
 
 
-TH1* MJDNeutronInducedIsotope::GetHistoFFT(TH1D* hist){
+TH1* MJDGat::GetHistoFFT(TH1D* hist){
   TH1 *h = NULL;
   TVirtualFFT::SetTransform(0);
   h = hist->FFT(h,"MAG");
@@ -297,7 +287,7 @@ TH1* MJDNeutronInducedIsotope::GetHistoFFT(TH1D* hist){
 }
 
 
-vector<Int_t> MJDNeutronInducedIsotope::Sort(vector<Double_t> X){
+vector<Int_t> MJDGat::Sort(vector<Double_t> X){
   Int_t n = X.size();
   const Int_t n1 = n;
   Double_t x1[n1];
@@ -313,7 +303,7 @@ vector<Int_t> MJDNeutronInducedIsotope::Sort(vector<Double_t> X){
   return Index;
 }
 
-vector<Int_t> MJDNeutronInducedIsotope::Clean(vector<Double_t> X){
+vector<Int_t> MJDGat::Clean(vector<Double_t> X){
 
   vector<Int_t> Index;
   Index.push_back(0);
@@ -332,7 +322,7 @@ vector<Int_t> MJDNeutronInducedIsotope::Clean(vector<Double_t> X){
   return Index;
 }
 
-Double_t MJDNeutronInducedIsotope::GetYValue(TH1D* hist, Double_t X){
+Double_t MJDGat::GetYValue(TH1D* hist, Double_t X){
   Double_t binwidth= hist->GetBinWidth(1);
   Double_t binx=0;
   Double_t biny=0;
@@ -346,7 +336,7 @@ Double_t MJDNeutronInducedIsotope::GetYValue(TH1D* hist, Double_t X){
   }
   return Y;
 }
-Int_t MJDNeutronInducedIsotope::FindPeaks(TH1D* hist, Double_t Low, Double_t Up, Double_t Resolution, Double_t Sigma, Double_t Threshold, vector<Double_t>* fPositionX, vector<Double_t>* fPositionY){
+Int_t MJDGat::FindPeaks(TH1D* hist, Double_t Low, Double_t Up, Double_t Resolution, Double_t Sigma, Double_t Threshold, vector<Double_t>* fPositionX, vector<Double_t>* fPositionY){
   Double_t baseline = 0;
   Double_t blrms = 0;
   Int_t count =0;
@@ -387,7 +377,7 @@ Int_t MJDNeutronInducedIsotope::FindPeaks(TH1D* hist, Double_t Low, Double_t Up,
   return npeaks;
 }
 
-Double_t MJDNeutronInducedIsotope::GetMax(TH1* hist, Double_t Low, Double_t Up){
+Double_t MJDGat::GetMax(TH1* hist, Double_t Low, Double_t Up){
   hist->GetXaxis()->SetRangeUser(Low,Up);
   Double_t xmax = hist->GetMaximum();
   return xmax;

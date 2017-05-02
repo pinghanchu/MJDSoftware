@@ -1,7 +1,7 @@
 #!/usr/bin/perl
-my $scriptpath = "/global/projecta/projectdirs/majorana/users/pchu/ana/WORK/MJDNeutronInducedIsotope/";
+my $scriptpath = "/global/projecta/projectdirs/majorana/users/pchu/ana/WORK/MJDGat/";
 my $inputfile = $scriptpath."List/runlist/bk.DS0.txt";
-my $search = $scriptpath."search.pl";
+my $search = $scriptpath."searchpileupwf.pl";
 my $enr = 67;
 my $window = 5;
 my $index = 1;

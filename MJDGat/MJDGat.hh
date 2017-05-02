@@ -1,5 +1,5 @@
-#ifndef GATAutoCal_hh
-#define GATAutoCal_hh
+#ifndef _MJDGat_hh
+#define _MJDGat_hh
 
 #include "GATDataSet.hh"
 #include "GATAutoCal.hh"
@@ -22,11 +22,11 @@
 using namespace std;
 
 
-class MJDNeutronInducedIsotope : public TObject  
+class MJDGat : public TObject  
 {
 public:   
-  MJDNeutronInducedIsotope(Int_t Run = 1);
-  virtual ~MJDNeutronInducedIsotope() {}
+  MJDGat(Int_t Run = 1);
+  virtual ~MJDGat() {}
   virtual inline Int_t GetRun() { return fRun; }
   virtual inline Int_t GetEntries() { return fEntries; }
   virtual inline Int_t GetIsRadio() { return fIsRadio; }

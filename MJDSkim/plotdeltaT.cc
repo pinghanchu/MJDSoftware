@@ -1,4 +1,4 @@
-#include "MJDNeutronInducedIsotope.hh"
+#include "MJDSkim.hh"
 #include "TStyle.h"
 #include "TFile.h"
 #include <fstream>
@@ -11,28 +11,17 @@ using namespace std;
 int main(int argc, char** argv)
 {
   if(argc != 3 || atoi(argv[1]) == 0) {
-    cout << "Usage: " << argv[0] << " [startrun] [endrun]" << endl;
+    cout << "Usage: " << argv[0] << "[energy] [window]" << endl;
     return 1;
   }
 
-  Int_t fStartRun = atoi(argv[1]);
-  Int_t fEndRun = atoi(argv[2]);
-  GATAutoCal ds(fStartRun,fEndRun);
-  //ds.SetEnergyName(fEnergyName);
-  string fDataSet = ds.GetDataSet();
-  vector<Int_t> fChannel = ds.GetChannel();
-  vector<Int_t> fCryo = ds.GetCryo();
-  vector<Int_t> fStr = ds.GetString();
-  vector<Int_t> fDetpos = ds.GetDetPosition();
-
-  Double_t fEnr1 = 66.7;
-  Double_t fEnr2 = 10000;
-  Double_t fTime = 0.5;
-  string fInputFile = Form("./data/wf_%d_%d.txt",fStartRun,fEndRun);
+  Double_t fEnr = atof(argv[1]);
+  Double_t fWindow =atof(argv[2]);
+  string fInputFile = Form("./data/wf_%d_%d.txt",(Int_t)fEnr,(Int_t)fWindow);
 
   ifstream fin(Form("%s",fInputFile.c_str()));
 
-  Int_t run,entry,channel;
+  Int_t run,entry,pos,channel;
   Double_t enr,ratio,deltaT,maxFFT,aovere;
   vector<Double_t> Ratio;
   vector<Double_t> DeltaT;
@@ -40,13 +29,11 @@ int main(int argc, char** argv)
   if(fin.is_open()){
     while(!fin.eof()){
       fin >> run >> entry >> channel >> enr >> ratio >> deltaT >> maxFFT >> aovere ;
-      if(enr<72 && enr>62 && ratio > 3.7 && ratio <4.5){
+      if(ratio > 3.7 && ratio <4.5){
 	Ratio.push_back(ratio);
 	DeltaT.push_back(deltaT);
 	Energy.push_back(enr);
-	if(deltaT>2000){
-	  cout<<run<<" " <<entry << " "<< channel << endl;
-	}
+	cout<<run<<" " <<entry << " "<< channel << endl;
       }
     }
   }
@@ -60,6 +47,6 @@ int main(int argc, char** argv)
     h1->SetTitle(";#Delta T(ns)");
     h1->GetYaxis()->SetTitleOffset(1.3);
     h1->Draw();
-    c1->Print(Form("deltaT_%d_%d.pdf",fStartRun,fEndRun));
+    c1->Print(Form("deltaT_%d_%d.pdf",(Int_t)fEnr,(Int_t)fWindow));
   }
 }

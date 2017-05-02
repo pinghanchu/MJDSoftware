@@ -439,8 +439,7 @@ GATAutoCal.o: GATAutoCal.cc GATAutoCal.hh \
  /global/project/projectdirs/majorana/software/sl64/root/root-6.08.06/install/include/Fit/FitResult.h \
  /global/project/projectdirs/majorana/software/sl64/root/root-6.08.06/install/include/TFitResultPtr.h \
  /global/common/pdsf_sl6/usg/software/gcc/4.8.2/include/c++/4.8.2/bitset
-MJDNeutronInducedIsotope.o: MJDNeutronInducedIsotope.cc \
- MJDNeutronInducedIsotope.hh \
+MJDGat.o: MJDGat.cc MJDGat.hh \
  /project/projectdirs/majorana/software/sl64/mjsw/mjsw20170413Prod/GAT/BaseClasses/GATDataSet.hh \
  /global/common/pdsf_sl6/usg/software/gcc/4.8.2/include/c++/4.8.2/vector \
  /global/common/pdsf_sl6/usg/software/gcc/4.8.2/include/c++/4.8.2/bits/stl_algobase.h \
@@ -885,7 +884,7 @@ MJDNeutronInducedIsotope.o: MJDNeutronInducedIsotope.cc \
  /global/project/projectdirs/majorana/software/sl64/root/root-6.08.06/install/include/TFitResultPtr.h \
  /global/project/projectdirs/majorana/software/sl64/root/root-6.08.06/install/include/TVirtualFFT.h \
  /global/common/pdsf_sl6/usg/software/gcc/4.8.2/include/c++/4.8.2/bitset
-plotdeltaT.o: plotdeltaT.cc MJDNeutronInducedIsotope.hh \
+plotdeltaT.o: plotdeltaT.cc MJDGat.hh \
  /project/projectdirs/majorana/software/sl64/mjsw/mjsw20170413Prod/GAT/BaseClasses/GATDataSet.hh \
  /global/common/pdsf_sl6/usg/software/gcc/4.8.2/include/c++/4.8.2/vector \
  /global/common/pdsf_sl6/usg/software/gcc/4.8.2/include/c++/4.8.2/bits/stl_algobase.h \
@@ -1242,7 +1241,7 @@ plotdeltaT.o: plotdeltaT.cc MJDNeutronInducedIsotope.hh \
  /global/project/projectdirs/majorana/software/sl64/root/root-6.08.06/install/include/TMap.h \
  /global/project/projectdirs/majorana/software/sl64/root/root-6.08.06/install/include/THashTable.h \
  /global/project/projectdirs/majorana/software/sl64/root/root-6.08.06/install/include/TUrl.h
-plotratiovsdeltaT.o: plotratiovsdeltaT.cc MJDNeutronInducedIsotope.hh \
+plotratiovsdeltaT.o: plotratiovsdeltaT.cc MJDGat.hh \
  /project/projectdirs/majorana/software/sl64/mjsw/mjsw20170413Prod/GAT/BaseClasses/GATDataSet.hh \
  /global/common/pdsf_sl6/usg/software/gcc/4.8.2/include/c++/4.8.2/vector \
  /global/common/pdsf_sl6/usg/software/gcc/4.8.2/include/c++/4.8.2/bits/stl_algobase.h \
@@ -1599,7 +1598,7 @@ plotratiovsdeltaT.o: plotratiovsdeltaT.cc MJDNeutronInducedIsotope.hh \
  /global/project/projectdirs/majorana/software/sl64/root/root-6.08.06/install/include/TMap.h \
  /global/project/projectdirs/majorana/software/sl64/root/root-6.08.06/install/include/THashTable.h \
  /global/project/projectdirs/majorana/software/sl64/root/root-6.08.06/install/include/TUrl.h
-search.o: search.cc MJDNeutronInducedIsotope.hh \
+searchpileupwf.o: searchpileupwf.cc MJDGat.hh \
  /project/projectdirs/majorana/software/sl64/mjsw/mjsw20170413Prod/GAT/BaseClasses/GATDataSet.hh \
  /global/common/pdsf_sl6/usg/software/gcc/4.8.2/include/c++/4.8.2/vector \
  /global/common/pdsf_sl6/usg/software/gcc/4.8.2/include/c++/4.8.2/bits/stl_algobase.h \

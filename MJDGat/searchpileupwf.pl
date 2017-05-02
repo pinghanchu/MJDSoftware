@@ -12,10 +12,10 @@ my $endrun = $ARGV[1];
 my $enr = $ARGV[2];
 my $window = $ARGV[3];
 my $index = $ARGV[4];
-my $scriptpath = "/global/projecta/projectdirs/majorana/users/pchu/ana/WORK/MJDNeutronInducedIsotope/";
+my $scriptpath = "/global/projecta/projectdirs/majorana/users/pchu/ana/WORK/MJDGat/";
 
 print "startrun = ", $startrun,"; endrun = ", $endrun,"; energy = ", $enr, "; window = ", $window,"\n";
-my $search =$scriptpath."search";
+my $search =$scriptpath."searchpileupwf";
 my $datapath = "./data/".$enr."/";
 #system("mkdir ./data/");
 #system("mkdir $datapath");

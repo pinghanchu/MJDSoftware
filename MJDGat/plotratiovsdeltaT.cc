@@ -1,4 +1,5 @@
-#include "MJDNeutronInducedIsotope.hh"
+#include "MJDGat.hh"
+#include "GATAutoCal.hh"
 #include "TStyle.h"
 #include "TFile.h"
 #include <fstream>
