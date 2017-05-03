@@ -21,14 +21,14 @@ int main(int argc, char** argv)
 
   ifstream fin(Form("%s",fInputFile.c_str()));
 
-  Int_t run,entry,pos,channel;
+  Int_t run,entry,pos,channel,nx;
   Double_t enr,ratio,deltaT,maxFFT,aovere;
   vector<Double_t> Ratio;
   vector<Double_t> DeltaT;
   vector<Double_t> Energy;
   if(fin.is_open()){
     while(!fin.eof()){
-      fin >> run >> entry >> channel >> enr >> ratio >> deltaT >> maxFFT >> aovere ;
+      fin >> run >> entry >> channel >> enr >> nx >> ratio >> deltaT >> maxFFT >> aovere ;
       if(ratio > 3.7 && ratio <4.5){
 	Ratio.push_back(ratio);
 	DeltaT.push_back(deltaT);

@@ -95,7 +95,7 @@ int main(int argc, char** argv)
 	TH1D* h4 = ds.GetHistoDerivative(h3,10);
 	TH1D* h5 = ds.GetHistoSmooth(h4,10);
 	TH1*  hFFT = ds.GetHistoFFT(h);
-	h->Write();
+	//h->Write();
 	// Cut1
 	Double_t maxFFT = ds.GetMax(hFFT, 50.,150.); 
 	//cout << max << endl;

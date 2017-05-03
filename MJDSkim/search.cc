@@ -77,7 +77,8 @@ int main(int argc, char** argv)
     
     for(size_t i=0;i<Run.size();i++){
       cout << Run.at(i) << " " << Entry.at(i) << " " << Channel.at(i) << " " << Enr.at(i) << " " << NX.at(i) << endl;
-      if(NX.at(i)>1 && NX.at(i)<10){
+      //if(NX.at(i)>1 && NX.at(i)<10){
+      if(NX.at(i)>0){
 	xp.clear();
 	yp.clear();
 	xp1.clear();
