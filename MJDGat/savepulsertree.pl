@@ -1,12 +1,13 @@
 #!/usr/bin/perl
-print "Please input [Data Set]\n";
+print "Please input [Data Set] [IsPulser]\n";
 $numArgs = $#ARGV + 1;
-if( $numArgs < 1){
+if( $numArgs < 2){
     print "You miss arguments\n";
-}elsif( $numArgs >1){
+}elsif( $numArgs >2){
     print "You have too many arguments\n";
 }
 my $index = $ARGV[0];
+my $ispulser = $ARGV[1];
 my $dataset;
 my $datapath;
 if($index ==0){
@@ -37,14 +38,19 @@ if($index ==0){
 
 my $scriptpath = "/global/projecta/projectdirs/majorana/users/pchu/ana/WORK/MJDGat/";
 my $home = "./";
-my $inputpath = "\$MJDDATADIR/surfmjd/analysis/pulser/".$datapath."/";
+#my $inputpath = "\$MJDDATADIR/surfmjd/analysis/pulser/".$datapath."/";
 #my $inputpath = "./Gat/";
 #my $inputpath = $home;
 my $outputpath = "./Hist/";
-my $outputname = $outputpath."pulser";
-my $ispulser = 1;
-my $savepulsertree = $scriptpath."savepulsertree";
 system("mkdir $outputpath");
+my $outputname;
+if($ispulser == 1){
+    $outputname = "pulser";
+}elsif($ispulser == 0){
+    $outputname = "hist";
+}
+
+my $savepulsertree = $scriptpath."savepulsertree";
 my $inputfile = $scriptpath."List/runlist/bk.".$dataset.".txt";
 open(my $fin, "<", $inputfile) or die "Failed to open file: $!\n";
 while(my $line = <$fin>) {
@@ -55,6 +61,7 @@ while(my $line = <$fin>) {
     my $startrun = $array[0]; 
     my $endrun = $array[1]; 
     for(my $i = $startrun;$i<=$endrun;$i++){
-	system("$savepulsertree $i $outputname $ispulser");
+	my $outputfile = $outputpath.$outputname."_".$i;	
+	system("$savepulsertree $i $outputfile $ispulser");
     }
 }
