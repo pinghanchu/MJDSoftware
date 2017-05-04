@@ -49,7 +49,7 @@ MJDGat::MJDGat(Int_t Run) : fDS(Run,Run)
 {
   fMjdTree = fDS.GetMJDTree();
   fMap = fDS.GetMap();
-  fEntries = fDS.GetEntries();
+  //fEntries = fDS.GetEntries();
   fRun = Run;
   //fGATRev = fDS.GetGATRev();
   fIsRadio = fDS.GetIsRadio();
@@ -65,19 +65,36 @@ MJDGat::MJDGat(Int_t Run) : fDS(Run,Run)
   fEnriched = fDS.GetEnriched();
   fDetectorName = fDS.GetDetectorName();
 
-  fMjdTree->SetBranchStatus("*",1);
+  //fMjdTree->SetBranchStatus("*",1);
+  fMjdTree->SetBranchStatus("*",0);
+  //fMjdTree->SetBranchStatus("run",1);
+  //fMjdTree->SetBranchStatus("C",1);
+  //fMjdTree->SetBranchStatus("P",1);
+  //fMjdTree->SetBranchStatus("D",1);
+  fMjdTree->SetBranchStatus("channel", 1);
+  fMjdTree->SetBranchStatus("trapE", 1);
+  fMjdTree->SetBranchStatus("trapENFCal",1);
+  fMjdTree->SetBranchStatus("timestamp", 1);
+  fMjdTree->SetBranchStatus("mH",1);
+  //fMjdTree->SetBranchStatus("mL",1);
+  fMjdTree->SetBranchStatus("EventDC1Bits",1);
+  fMjdTree->SetBranchStatus("fastTrapNLCWFsnRisingX",1);
 
   fMTChannel = NULL;
+  fMTTrapE = NULL;
   fMTTrapENFCal = NULL;
   fMTTimestamp = NULL;
   fMTfastTrapNLCWFsnRisingX = NULL;
 
   fMjdTree->SetBranchAddress("channel", &fMTChannel);
+  fMjdTree->SetBranchAddress("trapE", &fMTTrapE);
   fMjdTree->SetBranchAddress("trapENFCal", &fMTTrapENFCal);
   fMjdTree->SetBranchAddress("timestamp",&fMTTimestamp);
   fMjdTree->SetBranchAddress("mH",&fMTmH);
   fMjdTree->SetBranchAddress("EventDC1Bits", &fMTEventDC1Bits);
   fMjdTree->SetBranchAddress("fastTrapNLCWFsnRisingX", &fMTfastTrapNLCWFsnRisingX);
+  fMjdTree->GetEntry(0);
+  fEntries = fMjdTree->GetEntries();
 }
 
 void MJDGat::SearchDelayedEvent(Double_t fEnr1, Double_t fEnr2, Double_t fTime, string fOutputFile){
@@ -158,7 +175,6 @@ void MJDGat::SearchEnergyEvent(Double_t fEnr, Double_t fEnrWindow, string fOutpu
   //fEnr1 : the gamma energy
   //////////////////////////////////////
   map<int,int> detid;
-  //cout << fChannel.size() << endl;
   for(size_t i=0; i<fChannel.size(); i++) {    
     detid[fChannel.at(i)]= i;
   }
@@ -170,7 +186,6 @@ void MJDGat::SearchEnergyEvent(Double_t fEnr, Double_t fEnrWindow, string fOutpu
   //vector<Double_t> Enr1;
   for(size_t i=0;i<fEntries;i++){
     fMjdTree->GetEntry(i);
-    //cout << i << " " << fMTEventDC1Bits << endl;
     if(fMTEventDC1Bits == 0){
       for(size_t j=0;j<fMTChannel->size();j++){	
 	Int_t chan = fMTChannel->at(j);
@@ -381,4 +396,38 @@ Double_t MJDGat::GetMax(TH1* hist, Double_t Low, Double_t Up){
   hist->GetXaxis()->SetRangeUser(Low,Up);
   Double_t xmax = hist->GetMaximum();
   return xmax;
+}
+
+void MJDGat::SavePulserTree(Int_t IsPulser,string FileName){
+  if(IsPulser == 0){
+    cout << "Start to save histogram without pulsers" <<endl;
+  }else if(IsPulser == 1){
+    cout << "Start to save histogram of pulsers" <<endl;
+  }
+  TFile *newfile = new TFile(Form("%s.root",FileName.c_str()),"recreate");
+  TTree *newtree = fMjdTree->CloneTree(0);
+  cout << "Clone mjdTree" << endl;
+
+  if(IsPulser ==1){
+    for(size_t i=0;i<fEntries;i++){
+      //cout << i << " " << fEntries << endl;
+      fMjdTree->GetEntry(i);
+      Int_t isPulser = fMTEventDC1Bits;     
+      if(isPulser>0){
+	newtree->Fill();
+      }
+    }
+  }else if(IsPulser == 0){
+    for(size_t i=0;i<fEntries;i++){
+      //cout << i << " " << fEntries << endl;
+      fMjdTree->GetEntry(i);
+      Int_t isPulser = fMTEventDC1Bits;
+      if(isPulser == 0){
+        newtree->Fill();
+      }
+    }
+  }
+  newtree->Print();
+  newtree->AutoSave();
+  delete newfile;
 }

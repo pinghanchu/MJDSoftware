@@ -53,6 +53,7 @@ public:
   virtual Double_t GetMax(TH1* hist, Double_t Low, Double_t Up);
   virtual vector<Int_t> Sort(vector<Double_t> X);
   virtual vector<Int_t> Clean(vector<Double_t> X); 
+  virtual void SavePulserTree(Int_t IsPulser, string FileName);
 
 protected:
   GATAutoCal fDS;
@@ -76,10 +77,11 @@ protected:
   vector<string> fDetectorName;
 
   vector<Double_t>* fMTChannel;
+  vector<Double_t>* fMTTrapE;
   vector<Double_t>* fMTTrapENFCal;
   vector<Double_t>* fMTTimestamp;
-  ULong_t fMTmH;
-  UInt_t fMTEventDC1Bits;
+  Int_t fMTmH;
+  Int_t fMTEventDC1Bits;
   vector<Double_t>* fMTfastTrapNLCWFsnRisingX;
 
 
