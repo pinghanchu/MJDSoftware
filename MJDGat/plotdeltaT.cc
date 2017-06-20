@@ -45,9 +45,7 @@ int main(int argc, char** argv)
 	Ratio.push_back(ratio);
 	DeltaT.push_back(deltaT);
 	Energy.push_back(enr);
-	if(deltaT>2000){
-	  cout<<run<<" " <<entry << " "<< channel << endl;
-	}
+	cout<<run<<" " <<entry << " "<< channel << endl;
       }
     }
   }

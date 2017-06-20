@@ -120,6 +120,12 @@ GATAutoCal::GATAutoCal(Int_t StartRun, Int_t EndRun) : fDS(StartRun,EndRun)
 
 }
 
+GATAutoCal::~GATAutoCal()
+{
+  //delete fMjdTree;
+}
+
+
 Double_t GATAutoCal::IsNan(string Input){
   Double_t output = 0;
   if(Input == "nan" || Input == "-nan" || Input == "inf" || Input == "-inf"){
@@ -609,76 +615,28 @@ Int_t GATAutoCal::GetGATRev(){
 
 //Get Time Information from GAT
 Double_t GATAutoCal::GetStartTime(){
+  
   GATDataSet ds(fStartRun);
   TChain *mjdT = ds.GetGatifiedChain(false);
-  vector<Double_t> *timestamp = NULL;
+  fTimeInfo = NULL;
   mjdT->SetBranchStatus("*",1);
-  mjdT->SetBranchAddress("timestamp", &timestamp);
-  mjdT->SetBranchAddress("startTime",&fMTStartTime);
+  mjdT->SetBranchAddress("timeinfo", &fTimeInfo);
   mjdT->GetEntry(0);
-  //Double_t starttime = fMTStartTime;
-  Double_t starttime = timestamp->at(0);
+  Double_t starttime = fTimeInfo->globalTime;
   return starttime;
 }
 
-Double_t GATAutoCal::GetStartTimeMT(){
-  GATDataSet ds(fStartRun);
-  TChain *mjdT = ds.GetGatifiedChain(false);
-  mjdT->SetBranchStatus("*",1);
-  fMTTime = NULL;
-  mjdT->SetBranchAddress("timeMT", &fMTTime);
-  mjdT->GetEntry(0);
-  Double_t time = fMTTime->at(0);
-  return time;
-}
-
-Int_t GATAutoCal::GetStartDateMT(){
-  GATDataSet ds(fStartRun);
-  TChain *mjdT = ds.GetGatifiedChain(false);
-  mjdT->SetBranchStatus("*",1);
-  fMTDate = NULL;
-  mjdT->SetBranchAddress("dateMT",&fMTDate);
-  mjdT->GetEntry(0);
-  Int_t date = fMTDate->at(0);
-  return date;
-}
-
 Double_t GATAutoCal::GetStopTime(){
+  
   GATDataSet ds(fEndRun);
   TChain *mjdT = ds.GetGatifiedChain(false);
   Int_t entries = mjdT->GetEntries();
-  vector<Double_t> *timestamp = NULL;
+  fTimeInfo = NULL;
   mjdT->SetBranchStatus("*",1);
-  mjdT->SetBranchAddress("timestamp", &timestamp);
-  mjdT->SetBranchAddress("stopTime",&fMTStopTime);
+  mjdT->SetBranchAddress("timeinfo", &fTimeInfo);
   mjdT->GetEntry(entries-1);
-  //Double_t stoptime = fMTStopTime;
-  Double_t stoptime = timestamp->at(0);
+  Double_t stoptime = fTimeInfo->globalTime;
   return stoptime;
-}
-
-Double_t GATAutoCal::GetStopTimeMT(){
-  GATDataSet ds(fEndRun);
-  TChain *mjdT = ds.GetGatifiedChain(false);
-  Int_t entries = mjdT->GetEntries();
-  mjdT->SetBranchStatus("*",1);
-  fMTTime = NULL;
-  mjdT->SetBranchAddress("timeMT", &fMTTime);
-  mjdT->GetEntry(entries-1);
-  Double_t time = fMTTime->at(0);
-  return time;
-}
-
-Int_t GATAutoCal::GetStopDateMT(){
-  GATDataSet ds(fEndRun);
-  TChain *mjdT = ds.GetGatifiedChain(false);
-  Int_t entries = mjdT->GetEntries();
-  mjdT->SetBranchStatus("*",1);
-  fMTDate = NULL;
-  mjdT->SetBranchAddress("dateMT",&fMTDate);
-  mjdT->GetEntry(entries-1);
-  Int_t date = fMTDate->at(0);
-  return date;
 }
 
 //Fill Histogram of each channel
@@ -704,6 +662,14 @@ TH1D* GATAutoCal::FillHisto(TChain* mTree, string EnergyName, Int_t Channel, Int
     //cut1 = Form("channel == %d && EventDC1Bits == 0",Channel);
     cut1 = Form("channel == %d",Channel);
   }
+  mTree->Draw(Form("%s>>%s%d",EnergyName.c_str(),EnergyName.c_str(),Channel),cut1);
+  return h;
+}
+
+//Fill Histogram of each channel
+TH1D* GATAutoCal::FillPulser(TChain* mTree, string EnergyName, Int_t Channel, Int_t Bin, Double_t Low, Double_t Up){
+  TH1D *h = new TH1D(Form("%s%d", EnergyName.c_str(),Channel),Form("Channel %d",Channel), Bin, Low, Up);
+  TCut cut1 = Form("channel == %d && EventDC1Bits>0",Channel);
   mTree->Draw(Form("%s>>%s%d",EnergyName.c_str(),EnergyName.c_str(),Channel),cut1);
   return h;
 }
@@ -874,7 +840,7 @@ Int_t GATAutoCal::MultiPeakFit(TH1F *Hist, Double_t scaleenergy, Double_t scalea
 
 Int_t GATAutoCal::LinearFit(vector<Double_t> Px, vector<Double_t> PxErr, vector<Double_t> Py, vector<Double_t> PyErr, string FitName, string TitleName, Double_t EnergyROI, vector<Double_t>* Par, vector<Double_t>* ParErr, vector<Double_t>* Cov, vector<Int_t>* FitIndex){
 
-  gROOT->ProcessLine(".x MJDTalkPlotStyle.C");
+  gROOT->ProcessLine(".x $GATDIR/MJDCalibration/MJDTalkPlotStyle.C");
   
   //check if there are enough inputs
   Int_t nCal=Px.size();
@@ -966,7 +932,7 @@ Int_t GATAutoCal::LinearFit(vector<Double_t> Px, vector<Double_t> PxErr, vector<
     Double_t differr = TMath::Sqrt(pow(fOffsetErr,2)+pow(fScaleErr*Px.at(i),2)+pow(PxErr.at(i)*fScale,2));
     fDeltaGraph.SetPoint(i,Py.at(i),diff);
     fDeltaGraph.SetPointError(i,0,differr);
-    if(abs(diff)>1){
+    if(abs(diff)>1 && (i == nCal-1 || i == 0)){
       ferror << FitName.c_str() << " " << fEnergyName.c_str() << " " << i << " " << Py.at(i) << " " << Px.at(i) << " " << PxErr.at(i)<<  " " <<  diff << " " << differr << endl;
     }
     if(abs(diff)<3 && i<nCal-1){
@@ -988,9 +954,83 @@ Int_t GATAutoCal::LinearFit(vector<Double_t> Px, vector<Double_t> PxErr, vector<
 }
 
 
-void GATAutoCal::SetUpProvenance(std::string title, std::string yourname,
+void GATAutoCal::PlotResolution(vector<Double_t> Par, string FileName){
+  gROOT->ProcessLine(".x $GATDIR/MJDCalibration/MJDTalkPlotStyle.C");
+
+
+  TCanvas *c1 = new TCanvas("c1");
+  TF1 *f1 = new TF1("f1",Reso,0,3000,3);
+  f1->SetTitle(";Energy(keV); FWHM(keV)");
+  f1->SetLineStyle(1);
+  f1->SetLineWidth(1);
+  f1->SetParameter(0,Par.at(0));
+  f1->SetParameter(1,Par.at(1));
+  f1->SetParameter(2,Par.at(2));
+  f1->Draw();
+  c1->Print(Form("reso_%s.pdf",FileName.c_str()));
+}
+
+
+void GATAutoCal::PlotGrid(TMultiGraph *MG, TLegend *Leg, vector<string> Px, vector<Double_t> Ave, Double_t Low, Double_t Up, string FileName){
+
+  gROOT->ProcessLine(".x $GATDIR/MJDCalibration/MJDTalkPlotStyle.C");
+  string PlotName = Form("%s",FileName.c_str()); 
+  TCanvas *c1 = new TCanvas("c1", "c1",243,130,1000,600);
+  //TCanvas *c1 = new TCanvas("c1");
+  c1->SetGrid();
+  const Int_t nPx = Px.size();
+  string PosName[nPx];
+  for(size_t i=0;i<Px.size();i++){
+    //px = (Int_t)Px.at(i);
+    //ic = px/100;
+    //is = (px-ic*100)/10;
+    //id = (px-ic*100-is*10);
+    //ic = fCryo.at(px);
+    //is = fString.at(px);
+    //id = fDetector.at(px);
+    //string detpos = Form("#splitline{C%dP%dD%d}{%d}",ic,is,id,fChannel.at(px));
+    //string detpos = Form("C%dP%dD%d",ic,is,id);
+    string detpos = Form("%s",Px.at(i).c_str());
+    PosName[i] = detpos;
+  }
+
+  const Int_t nAve = Ave.size();
+  TF1 *fFlatFun[nAve];
+  for(size_t ia = 0;ia<Ave.size();ia++){
+    fFlatFun[ia] =new TF1("fFlatFun","[0]",0.,100.);
+    fFlatFun[ia]->SetLineColor(ia+2);
+    fFlatFun[ia]->SetLineWidth(2);
+    fFlatFun[ia]->SetLineStyle(2);
+    fFlatFun[ia]->SetParameter(0,Ave[ia]);
+  }
+  //MG->SetTitle(Form("DS0:1000-1400 keV;;%s",TitleName.c_str()));
+  MG->SetMaximum(Up);
+  MG->SetMinimum(Low);
+
+  MG->Draw("AP");
+  for(size_t ia=0;ia<Ave.size();ia++){
+    fFlatFun[ia]->Draw("same");
+  }
+  TAxis *ax1 = MG->GetHistogram()->GetXaxis();
+  Double_t x11 = ax1->GetBinLowEdge(4);
+  Double_t x21 = ax1->GetBinUpEdge(97);
+  MG->GetHistogram()->GetXaxis()->Set(nPx,x11,x21);
+
+  for(Int_t j=0;j<nPx;j++){
+    MG->GetHistogram()->GetXaxis()->SetBinLabel(j+1,PosName[j].c_str());
+    //MG->GetHistogram()->GetXaxis()->SetBinLabel(MG->GetHistogram()->GetBin(j+1),PosName[j].c_str());
+  }
+  Float_t kAxisTitleSize = 20;
+  MG->GetXaxis()->SetLabelSize(kAxisTitleSize);
+  MG->GetXaxis()->SetLabelFont(5);
+  MG->GetXaxis()->SetBit(TAxis::kLabelsVert);
+  Leg->Draw();
+  c1->Print(Form("%s",PlotName.c_str()));
+}
+
+
+void GATAutoCal::SetUpProvenance(std::string Title, std::string YourName,
 				 Int_t gatrev,
-				 //		 std::string detectorid,
 				 int startrun, int endrun,
 				 int coverstartrun, int coverendrun,
 				 int startdate, int enddate,
@@ -998,8 +1038,8 @@ void GATAutoCal::SetUpProvenance(std::string title, std::string yourname,
 {
   cout << gatrev << endl;
   //Construct static provenance
-  fACProvenance.SetTitle(title);
-  fACProvenance.SetPublisher(yourname);
+  fACProvenance.SetTitle(Title);
+  fACProvenance.SetPublisher(YourName);
   fACProvenance.SetRecordType(krtAutomatic); //Automatic calibration record
   fACProvenance.SetValid(true);              //Invalidate later, if necessary
   fACProvenance.SetSystemIdentifier(fDataSet); //from GATAutoCal
@@ -1030,7 +1070,7 @@ void GATAutoCal::SetUpProvenance(std::string title, std::string yourname,
   fACProvenance.SetRunCoverage(MJDB::NumberToString(coverstartrun),MJDB::NumberToString(coverendrun)); //no ending run #
 
   //What software generated the calibrations (fictional names for testing)
-  fACProvenance.SetSoftwareSource(Form("GATAutoCal/GATRev%d",gatrev)); //<- GAT Version?
+  fACProvenance.SetSoftwareSource(Form("GATAutoCal/%d",gatrev)); //<- GAT Version?
   fACProvenance.SetSoftwareCoverage("GAT/MJDBParameters");
 
   //Parameter source
@@ -1038,7 +1078,7 @@ void GATAutoCal::SetUpProvenance(std::string title, std::string yourname,
 }
 
 //This creates a single new record of energy calibration in the database
-    void GATAutoCal::PutECalMJDB(int channel, std::string detectorid,
+void GATAutoCal::PutECalMJDB(int Channel, std::string DetectorName,
 			     double scale, double scalerr,
 			     double offset, double offerr,
 			     std::vector<double> covariance)
@@ -1047,13 +1087,13 @@ void GATAutoCal::SetUpProvenance(std::string title, std::string yourname,
   //REMOVE this after testing
   //This line adds the non-standard DB to the AnalysisDoc readout
   //fACAnalysisDB.SetAlternateDB("", "mjdbsandbox","","","");
-  //fACAnalysisDB.SetAlternateDB("", "mjdbatest","","","");
+  fACAnalysisDB.SetAlternateDB("", "mjdbatest","","","");
   
   MJDB::EnergyCalibration myE_On;
   fACProvenance.SetParametersSource(fEnergyName); //from the class
   fACProvenance.SetParametersType(myE_On.GetPType());//set the Parameter type
-  fACProvenance.SetChannelIdentifier(MJDB::NumberToString(channel));
-  fACProvenance.SetDetectorIdentifier(detectorid);
+  fACProvenance.SetChannelIdentifier(MJDB::NumberToString(Channel));
+  fACProvenance.SetDetectorIdentifier(DetectorName);
 
 
   myE_On.Scale.SetValue(scale);
@@ -1080,3 +1120,145 @@ void GATAutoCal::SetUpProvenance(std::string title, std::string yourname,
 	 << endl;
   }
 }
+
+
+//This creates a single new record of energy calibration in the database
+void GATAutoCal::PutPulserMJDB(std::string Title, std::string YourName,
+			       Int_t gatrev,Int_t Run, 
+			       Int_t startdate, Int_t enddate,
+			       Int_t Channel, std::string DetectorName,
+			       Double_t Pulser, Double_t PulserErr)
+{
+  
+  MJProvenance myProvenance;  //Restore the MJProvenance class
+  MJAnalysisDoc APDoc;
+  
+  //APDoc.SetAlternateDB("localhost", "mjdbsandbox", "6984", "https", "mjdb"); //MJDB, sandbox
+  APDoc.SetAlternateDB("", "mjdbatest","","","");
+  
+
+  PulserPeak myPulserPeak;
+
+  //===================================================================
+  //Examples of creating a record for PeakChannels record type.
+  //===================================================================
+  //
+  //Directly load run dependent provenance.
+
+  //Construct provenance
+  myProvenance.SetTitle(Title);
+  myProvenance.SetPublisher(YourName);
+  myProvenance.SetRecordType(krtAutomatic); //Automatic calibration record
+  myProvenance.SetValid(true);              //Invalidate later, if necessary
+  myProvenance.SetSystemIdentifier(fDataSet); //from GATAutoCal
+  myProvenance.SetChannelIdentifier(MJDB::NumberToString(Channel));
+  myProvenance.SetDetectorIdentifier(DetectorName);
+  myProvenance.SetSoftwareSource(Form("GATAutoCal/%d",gatrev)); //<- GAT Version?
+  myProvenance.SetSoftwareCoverage("GAT/MJDBParameters");
+  myProvenance.SetRunIdentifier(MJDB::NumberToString(Run),
+                                MJDB::NumberToString(Run));
+  myProvenance.SetRunDate(MJDB::NumberToString(startdate),
+		          MJDB::NumberToString(enddate)); 
+  myProvenance.SetRunCoverage(MJDB::NumberToString(Run),
+                              MJDB::NumberToString(Run));
+  myProvenance.SetDateCoverage(MJDB::NumberToString(startdate),
+			       MJDB::NumberToString(enddate));
+  myProvenance.SetParametersType(kptPulserPeakLocation); //Set the type of the record
+  myProvenance.SetParametersSource(fEnergyName);
+
+  myPulserPeak.Clear();
+  myPulserPeak.Location.SetValue(Pulser);
+  myPulserPeak.Location.SetUncertainty(PulserErr);
+
+  int status=0;
+  myProvenance.SetDBProvenance(APDoc); //Insert the provenance into the record
+  
+  if (myPulserPeak.SetDBValue(APDoc)) { //Insert the parameters into the record
+    
+    APDoc.Dump();  //uncomment this to see the raw record
+    status = APDoc.New_MJAnalysis_Record();  //Send the record to the database
+    if (status) {
+      std::string statusMessage;
+      APDoc.GetDBStatus(statusMessage);
+      cout << "Status = " << status << endl;
+      return; //Error
+    }
+  } else {
+    cout << myPulserPeak.GetPType()
+         << " needs more parameters set before saving to DB" << endl;
+  }
+  
+}
+
+/*
+
+//This creates a single new record of energy calibration in the database
+void GATAutoCal::PutMultiPeakFitMJDB(std::string Title, std::string YourName,
+				Int_t gatrev,Int_t StartRun, Int_t EndRun, 
+				Int_t startdate, Int_t enddate,
+				Int_t Channel, std::string DetectorName,
+				vector<string> ParName, vector<Double_t> PeakFit, vector<Double_t> PeakFitErr)
+{
+  
+  MJProvenance myProvenance;  //Restore the MJProvenance class
+  MJAnalysisDoc APDoc;
+  
+  //APDoc.SetAlternateDB("localhost", "mjdbsandbox", "6984", "https", "mjdb"); //MJDB, sandbox
+  APDoc.SetAlternateDB("", "mjdbatest","","","");
+  
+
+  PulserPeak myPulserPeak;
+
+  //===================================================================
+  //Examples of creating a record for PeakChannels record type.
+  //===================================================================
+  //
+  //Directly load run dependent provenance.
+
+  //Construct provenance
+  myProvenance.SetTitle(Title);
+  myProvenance.SetPublisher(YourName);
+  myProvenance.SetRecordType(krtAutomatic); //Automatic calibration record
+  myProvenance.SetValid(true);              //Invalidate later, if necessary
+  myProvenance.SetSystemIdentifier(fDataSet); //from GATAutoCal
+  myProvenance.SetChannelIdentifier(MJDB::NumberToString(Channel));
+  myProvenance.SetDetectorIdentifier(DetectorName);
+  myProvenance.SetSoftwareSource(Form("GATAutoCal/%d",gatrev)); //<- GAT Version?
+  myProvenance.SetSoftwareCoverage("GAT/MJDBParameters");
+  myProvenance.SetRunIdentifier(MJDB::NumberToString(StartRun),
+                                MJDB::NumberToString(EndRun));
+  myProvenance.SetRunDate(MJDB::NumberToString(startdate),
+		          MJDB::NumberToString(enddate)); 
+  myProvenance.SetRunCoverage(MJDB::NumberToString(StartRun),
+                              MJDB::NumberToString(EndRun));
+  myProvenance.SetDateCoverage(MJDB::NumberToString(startdate),
+			       MJDB::NumberToString(enddate));
+  myProvenance.SetParametersSource(fEnergyName);
+
+  //const int numberOfPeaks = 8;
+  //const int numberOfParameters = 11;
+
+  //PeakFitParameterList mySetOfParameters;
+
+  //PeakFitParameters myPeakFitP;
+
+  int status=0;
+  myProvenance.SetDBProvenance(APDoc); //Insert the provenance into the record
+  
+  if (myPulserPeak.SetDBValue(APDoc)) { //Insert the parameters into the record
+    
+    APDoc.Dump();  //uncomment this to see the raw record
+    status = APDoc.New_MJAnalysis_Record();  //Send the record to the database
+    if (status) {
+      std::string statusMessage;
+      APDoc.GetDBStatus(statusMessage);
+      cout << "Status = " << status << endl;
+      return; //Error
+    }
+  } else {
+    cout << myPulserPeak.GetPType()
+         << " needs more parameters set before saving to DB" << endl;
+  }  
+}
+
+*/

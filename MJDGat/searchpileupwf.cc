@@ -11,22 +11,22 @@ using namespace std;
 int main(int argc, char** argv)
 {
   if(argc != 4 || atoi(argv[1]) == 0) {
-    cout << "Usage: " << argv[0] << " [run] [energy] [window" << endl;
+    cout << "Usage: " << argv[0] << " [run] [energy] [window]" << endl;
     return 1;
   }
 
   Int_t fRun = atoi(argv[1]);
+  cout << "Run:" << fRun << endl;
   Double_t fEnergy = atof(argv[2]);
   Double_t fWindow = atof(argv[3]);
-
+  cout << fEnergy << " " << fWindow << endl;
   MJDGat ds(fRun);
-  //ds.SetEnergyName(fEnergyName);
   string fDataSet = ds.GetDataSet();
   vector<Int_t> fChannel = ds.GetChannel();
   vector<Int_t> fCryo = ds.GetCryo();
   vector<Int_t> fStr = ds.GetString();
   vector<Int_t> fDetpos = ds.GetDetPosition();
-
+  cout << fDataSet << endl;
   cout << "Energy Screening..." << endl;
   string fOutputFile = Form("data_%d.txt",fRun);
   ds.SearchEnergyEvent(fEnergy,fWindow,fOutputFile);
@@ -78,7 +78,7 @@ int main(int argc, char** argv)
     Double_t fSigma = 5;
     
     for(size_t i=0;i<Entry.size();i++){
-      if(nX.at(i)>1){
+      if(nX.at(i)>=0){
 	cout << fRun << " " << Entry.at(i) << " " << Channel.at(i) << " " << Enr.at(i) << " "<< nX.at(i) << endl;
 	xp.clear();
 	yp.clear();
@@ -98,18 +98,21 @@ int main(int argc, char** argv)
 	//h->Write();
 	// Cut1
 	Double_t maxFFT = ds.GetMax(hFFT, 50.,150.); 
+	Double_t maxY0 = ds.GetMax(h1, 100,19000);
+	Int_t maxBin0 = h1->GetMaximumBin();
+	Double_t maxX0 = h1->GetBinCenter(maxBin0);
+
 	//cout << max << endl;
 	// Cut2 
 	Double_t A = ds.GetMax(h3, Xmin,Xmax);
 	Double_t AoverE = A/Enr.at(ii);
 	
-	if(maxFFT<2000 && AoverE>0.004){
+	if(maxFFT<4000 && AoverE>0.001){
 	  Int_t nPeak1 = ds.FindPeaks(h3, Xmin, Xmax,fResolution,fSigma, fThreshold, &xp, &yp);
 	  if(nPeak1>1){
-	    for(Int_t ip = 0;ip<(Int_t)xp.size();ip++){
-	      
+	    for(Int_t ip = 0;ip<(Int_t)xp.size();ip++){	      
 	      Double_t y = ds.GetYValue(h5, xp.at(ip));
-	      if(abs(y)<2e-4){
+	      if(abs(y)<2e-4 && xp.at(ip)< maxX0 ){
 		xp1.push_back(xp.at(ip));
 		yp1.push_back(yp.at(ip));
 	      }
@@ -133,7 +136,7 @@ int main(int argc, char** argv)
 		xp2.push_back(xp1.at(ii));
 		yp2.push_back(yp1.at(ii));
 	      }
-	      fout << fRun << " " << Entry.at(ii) << " " << Channel.at(ii) << " "<< Enr.at(ii)<< " " << nX.at(ii) << " " << yp2.at(1)/yp2.at(0) << " " << xp2.at(0)-xp2.at(1) << " " << maxFFT << " " << AoverE << endl;	      
+	      fout << fRun << " " << Entry.at(ii) << " " << Channel.at(ii) << " "<< Enr.at(ii)<< " " << nX.at(ii) << " " << yp2.at(1)/yp2.at(0) << " " << xp2.at(0)-xp2.at(1) << " " << maxFFT << " " << AoverE << " "<< ds.GetYValue(h1,xp2.at(0)) << " " << ds.GetYValue(h1,xp2.at(1)) << endl;	      
 	    }
 	  }
 	}	

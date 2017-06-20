@@ -26,23 +26,30 @@ for($i = 0;$i<$entry;$i++){
     my $r2 = $startrun+$index*($i+1)-1;
     my $dir = $r1."_".$r2;
     my $app  = "wf_".$dir.".csh";
+    my $outfile = "data_".$r1.".txt";
+
     open(my $fh, ">", $app) or die "cannot open";#
 print $fh "#!/bin/tcsh\n";
     for($j = $r1;$j<=$r2; $j++){
+	
 	my $run = $j;
+	my $outfile = "out".$run."_".$run;
 	my $waveform = "waveform_".$run.".root";
 	my $wf = "wf_".$run.".txt";
 	my $data = "data_".$run.".txt";
 	print $fh "$search $run $enr $window\n";
 	#print $fh "mv $waveform $datapath\n";
 	#print $fh "mv $wf $datapath\n";
-	#print $fh "mv $data $datapath\n";
+	#print $fh "mv $data $datapath\n";	
     }
 
     close $fh;
     system("chmod 755 $app");
-#system("./$app");
-    system("qsub -l projectio=1 -cwd -o out.$dir -e err.$dir $app");
+    if(-e $outfile){
+    }else{
+	system("qsub -l projectio=1 -cwd -o out.$dir -e err.$dir $app");
+	#system("./$app");
+    }
 }
 my $last = $endrun-$entry*$index;
 if($last>0){
@@ -50,6 +57,7 @@ if($last>0){
     my $r2 = $endrun;
     my $dir = $r1."_".$r2;
     my $app  = "wf_".$dir.".csh";
+    my $outfile = "data_".$r1.".txt";
     open(my $fh, ">", $app) or die "cannot open";#
     print $fh "#!/bin/tcsh\n";
     for($j = $r1;$j<=$r2; $j++){
@@ -65,6 +73,9 @@ if($last>0){
 
     close $fh;
     system("chmod 755 $app");
-#system("./$app");
-    system("qsub -l projectio=1 -cwd -o out.$dir -e err.$dir $app");
+    if(-e $outfile){
+    }else{
+	system("qsub -l projectio=1 -cwd -o out.$dir -e err.$dir $app");
+	#system("./$app");
+    }
 }

@@ -24,6 +24,7 @@ int main(int argc, char** argv)
   vector<Int_t> fCryo = ds.GetCryo();
   vector<Int_t> fStr = ds.GetString();
   vector<Int_t> fDetpos = ds.GetDetPosition();
+
   TFile *pulserfile = new TFile(Form("%spulser_%d.root", fPulserPath.c_str(), fRun), "read");
   TTree *pulsertree = (TTree*)pulserfile->Get("pulsertree");
   Int_t Pulser;
@@ -36,4 +37,5 @@ int main(int argc, char** argv)
     }
   }
   cout << fRun << " " << count << endl;
+
 }

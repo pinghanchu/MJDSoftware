@@ -3,6 +3,7 @@
 
 #include "GATDataSet.hh"
 #include "GATAutoCal.hh"
+#include "GATTimeInfo.hh"
 #include "MJAnalysisDoc.hh"
 #include "MJProvenance.hh"
 #include "TObject.h"
@@ -41,7 +42,9 @@ public:
   virtual inline vector<string> GetDetectorName(){ return fDetectorName;}
   virtual inline TChain* GetMJDTree(){ return fMjdTree; }
   virtual inline MJTChannelMap* GetMap(){ return fMap; }
-
+  virtual inline Double_t GetStartTime(){return fMTStartTime;}
+  virtual inline Double_t GetStopTime(){return fMTStopTime;}
+  virtual void SeachPulserChannel(string fOutputFile);
   virtual void SearchDelayedEvent(Double_t fEnr1, Double_t fEnr2, Double_t fTime, string fOutputFile);
   virtual void SearchEnergyEvent(Double_t fEnr1, Double_t fEnrWindow, string fOutputFile);
   virtual TH1D* GetWaveform(Int_t fR,Int_t fEntry, Int_t fChan,Double_t fEnr);
@@ -53,7 +56,7 @@ public:
   virtual Double_t GetMax(TH1* hist, Double_t Low, Double_t Up);
   virtual vector<Int_t> Sort(vector<Double_t> X);
   virtual vector<Int_t> Clean(vector<Double_t> X); 
-  virtual void SavePulserTree(Int_t IsPulser, string FileName);
+  virtual void SaveSubTree(string FileName);
 
 protected:
   GATAutoCal fDS;
@@ -64,8 +67,8 @@ protected:
   Int_t fRun;
   //UInt_t fGATRev;
   Int_t fIsRadio;
-  //Double_t fMTStartTime;
-  //Double_t fMTStopTime;
+  Double_t fMTStartTime;
+  Double_t fMTStopTime;
   string fDataSet;
   vector<Int_t> fChannel;
   vector<Int_t> fPulserTagChannel;
@@ -79,7 +82,8 @@ protected:
   vector<Double_t>* fMTChannel;
   vector<Double_t>* fMTTrapE;
   vector<Double_t>* fMTTrapENFCal;
-  vector<Double_t>* fMTTimestamp;
+  //vector<Double_t>* fMTTimestamp;
+  GATTimeInfo* fMTTimeInfo;
   Int_t fMTmH;
   Int_t fMTEventDC1Bits;
   vector<Double_t>* fMTfastTrapNLCWFsnRisingX;

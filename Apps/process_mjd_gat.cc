@@ -107,7 +107,6 @@ int main(int argc, char** argv)
   // open input file
   TFile* file = TFile::Open(argv[1]);
   if(file == NULL) return 0;
-
   // find MGTEvent tree in input file
   TTree* MGTree = (TTree*) file->Get("MGTree");
   if(MGTree == NULL) {

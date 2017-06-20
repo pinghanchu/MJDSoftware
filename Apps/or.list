@@ -1,0 +1,218 @@
+   ------------------------------------------------------------
+  | Welcome to ROOT 6.08/06                http://root.cern.ch |
+  |                               (c) 1995-2016, The ROOT Team |
+  | Built for linuxx8664gcc                                    |
+  | From tag v6-08-06, 2 March 2017                            |
+  | Try '.help', '.demo', '.license', '.credits', '.quit'/'.q' |
+   ------------------------------------------------------------
+
+
+Attaching file OR_run5894.root as _file0...
+(TFile *) 0x1cdb8f0
+******************************************************************************
+*Tree    :MGTree    : MGTree                                                 *
+*Entries :    21187 : Total =       111892732 bytes  File  Size =   50090172 *
+*        :          : Tree compression factor =   2.23                       *
+******************************************************************************
+*Branch  :run                                                                *
+*Entries :    21187 : BranchElement (see below)                              *
+*............................................................................*
+*Br    0 :MGTDataObject : BASE                                               *
+*Entries :    21187 : Total  Size=     595106 bytes  File Size  =      33668 *
+*Baskets :       14 : Basket Size=     830976 bytes  Compression=  17.66     *
+*............................................................................*
+*Br    1 :fRunType  : Int_t                                                  *
+*Entries :    21187 : Total  Size=      85469 bytes  File Size  =        699 *
+*Baskets :        3 : Basket Size=     181760 bytes  Compression= 121.57     *
+*............................................................................*
+*Br    2 :fRunNumber : Int_t                                                 *
+*Entries :    21187 : Total  Size=      85483 bytes  File Size  =        762 *
+*Baskets :        3 : Basket Size=     181760 bytes  Compression= 111.53     *
+*............................................................................*
+*Br    3 :fRunDescription : string                                           *
+*Entries :    21187 : Total  Size=     404011 bytes  File Size  =      36815 *
+*Baskets :       10 : Basket Size=     569856 bytes  Compression=  10.96     *
+*............................................................................*
+*Br    4 :fParentDAQLabel : string                                           *
+*Entries :    21187 : Total  Size=     382824 bytes  File Size  =      34485 *
+*Baskets :       10 : Basket Size=     541184 bytes  Compression=  11.09     *
+*............................................................................*
+*Br    5 :fMGDOConversionVersion : string                                    *
+*Entries :    21187 : Total  Size=     446602 bytes  File Size  =      38288 *
+*Baskets :       11 : Basket Size=     627712 bytes  Compression=  11.65     *
+*............................................................................*
+*Br    6 :fStartTime : Long_t                                                *
+*Entries :    21187 : Total  Size=     170389 bytes  File Size  =       1519 *
+*Baskets :        5 : Basket Size=     267264 bytes  Compression= 111.84     *
+*............................................................................*
+*Br    7 :fStopTime : Long_t                                                 *
+*Entries :    21187 : Total  Size=     170380 bytes  File Size  =       1518 *
+*Baskets :        5 : Basket Size=     267264 bytes  Compression= 111.91     *
+*............................................................................*
+*Br    8 :fRunBits  : UInt_t                                                 *
+*Entries :    21187 : Total  Size=      85469 bytes  File Size  =        755 *
+*Baskets :        3 : Basket Size=     181760 bytes  Compression= 112.55     *
+*............................................................................*
+*Br    9 :fMaxIndex : UInt_t                                                 *
+*Entries :    21187 : Total  Size=      85476 bytes  File Size  =        759 *
+*Baskets :        3 : Basket Size=     181760 bytes  Compression= 111.97     *
+*............................................................................*
+*Br   10 :fStartClockTime : Double_t                                         *
+*Entries :    21187 : Total  Size=     170434 bytes  File Size  =       1548 *
+*Baskets :        5 : Basket Size=     267264 bytes  Compression= 109.76     *
+*............................................................................*
+*Br   11 :fStopClockTime : Double_t                                          *
+*Entries :    21187 : Total  Size=     170425 bytes  File Size  =       1554 *
+*Baskets :        5 : Basket Size=     267264 bytes  Compression= 109.34     *
+*............................................................................*
+*Br   12 :fStartRunBoundary : Int_t                                          *
+*Entries :    21187 : Total  Size=      85532 bytes  File Size  =        726 *
+*Baskets :        3 : Basket Size=     181760 bytes  Compression= 117.09     *
+*............................................................................*
+*Br   13 :fStopRunBoundary : Int_t                                           *
+*Entries :    21187 : Total  Size=      85525 bytes  File Size  =        723 *
+*Baskets :        3 : Basket Size=     181760 bytes  Compression= 117.57     *
+*............................................................................*
+*Br   14 :fUseMultisampling : Bool_t                                         *
+*Entries :    21187 : Total  Size=      21885 bytes  File Size  =        329 *
+*Baskets :        2 : Basket Size=     129536 bytes  Compression=  64.92     *
+*............................................................................*
+*Branch  :event                                                              *
+*Entries :    21187 : BranchElement (see below)                              *
+*............................................................................*
+*Br   15 :MGTDataObject : BASE                                               *
+*Entries :    21187 : Total  Size=     595106 bytes  File Size  =      33668 *
+*Baskets :       14 : Basket Size=     830976 bytes  Compression=  17.66     *
+*............................................................................*
+*Br   16 :fEventType : Int_t                                                 *
+*Entries :    21187 : Total  Size=      85483 bytes  File Size  =       8197 *
+*Baskets :        3 : Basket Size=     181760 bytes  Compression=  10.37     *
+*............................................................................*
+*Br   17 :fETotal   : Double_t                                               *
+*Entries :    21187 : Total  Size=     170362 bytes  File Size  =      82120 *
+*Baskets :        5 : Basket Size=     267264 bytes  Compression=   2.07     *
+*............................................................................*
+*Br   18 :fTime     : Double_t                                               *
+*Entries :    21187 : Total  Size=     170344 bytes  File Size  =     103770 *
+*Baskets :        5 : Basket Size=     267264 bytes  Compression=   1.64     *
+*............................................................................*
+*Br   19 :fWaveforms : TClonesArray*                                         *
+*Entries :    21187 : Total  Size=   99327086 bytes  File Size  =   48197775 *
+*Baskets :     1882 : Basket Size=   25600000 bytes  Compression=   2.06     *
+*............................................................................*
+*Br   20 :fDigitizerData : Int_t fDigitizerData_                             *
+*Entries :    21187 : Total  Size=      97118 bytes  File Size  =      11160 *
+*Baskets :        4 : Basket Size=      32000 bytes  Compression=   7.62     *
+*............................................................................*
+*Br   21 :fDigitizerData.MGTDataObject : BASE MGTDataObject[fDigitizerData_] *
+*Entries :    21187 : Total  Size=     926190 bytes  File Size  =      49615 *
+*Baskets :       20 : Basket Size=    1303040 bytes  Compression=  18.65     *
+*............................................................................*
+*Br   22 :fDigitizerData.fEnergy : Double_t fEnergy[fDigitizerData_]         *
+*Entries :    21187 : Total  Size=     459284 bytes  File Size  =     218299 *
+*Baskets :       12 : Basket Size=     652288 bytes  Compression=   2.10     *
+*............................................................................*
+*Br   23 :fDigitizerData.fTimeStamp : ULong_t fTimeStamp[fDigitizerData_]    *
+*Entries :    21187 : Total  Size=     459332 bytes  File Size  =     211120 *
+*Baskets :       12 : Basket Size=     652288 bytes  Compression=   2.17     *
+*............................................................................*
+*Br   24 :fDigitizerData.fID : UInt_t fID[fDigitizerData_]                   *
+*Entries :    21187 : Total  Size=     272456 bytes  File Size  =      73812 *
+*Baskets :        8 : Basket Size=     395264 bytes  Compression=   3.68     *
+*............................................................................*
+*Br   25 :fDigitizerData.fIndex : ULong_t fIndex[fDigitizerData_]            *
+*Entries :    21187 : Total  Size=     459268 bytes  File Size  =     115185 *
+*Baskets :       12 : Basket Size=     652288 bytes  Compression=   3.98     *
+*............................................................................*
+*Br   26 :fDigitizerData.fBoardSerialNumber :                                *
+*         | UShort_t fBoardSerialNumber[fDigitizerData_]                     *
+*Entries :    21187 : Total  Size=     179254 bytes  File Size  =      35288 *
+*Baskets :        6 : Basket Size=     269824 bytes  Compression=   5.06     *
+*............................................................................*
+*Br   27 :fDigitizerData.fLEDCrossingSignIsNegative :                        *
+*         | Bool_t fLEDCrossingSignIsNegative[fDigitizerData_]               *
+*Entries :    21187 : Total  Size=     132753 bytes  File Size  =      36022 *
+*Baskets :        6 : Basket Size=     208896 bytes  Compression=   3.67     *
+*............................................................................*
+*Br   28 :fDigitizerData.fExternalTriggerFlag :                              *
+*         | Bool_t fExternalTriggerFlag[fDigitizerData_]                     *
+*Entries :    21187 : Total  Size=     132693 bytes  File Size  =      35966 *
+*Baskets :        6 : Basket Size=     208896 bytes  Compression=   3.67     *
+*............................................................................*
+*Br   29 :fDigitizerData.fCFDCrossingOccurred :                              *
+*         | Bool_t fCFDCrossingOccurred[fDigitizerData_]                     *
+*Entries :    21187 : Total  Size=     132693 bytes  File Size  =      35966 *
+*Baskets :        6 : Basket Size=     208896 bytes  Compression=   3.67     *
+*............................................................................*
+*Br   30 :fDigitizerData.fPileupFlag : Bool_t fPileupFlag[fDigitizerData_]   *
+*Entries :    21187 : Total  Size=     132500 bytes  File Size  =      35745 *
+*Baskets :        5 : Basket Size=     208384 bytes  Compression=   3.69     *
+*............................................................................*
+*Br   31 :fDigitizerData.fTTCLTimeoutFlag :                                  *
+*         | Bool_t fTTCLTimeoutFlag[fDigitizerData_]                         *
+*Entries :    21187 : Total  Size=     132545 bytes  File Size  =      35816 *
+*Baskets :        5 : Basket Size=     208896 bytes  Compression=   3.68     *
+*............................................................................*
+*Br   32 :fDigitizerData.fCFDTimeStamp :                                     *
+*         | ULong_t fCFDTimeStamp[fDigitizerData_]                           *
+*Entries :    21187 : Total  Size=     459380 bytes  File Size  =      36815 *
+*Baskets :       12 : Basket Size=     652288 bytes  Compression=  12.46     *
+*............................................................................*
+*Br   33 :fDigitizerData.fCFDPoint1 : Int_t fCFDPoint1[fDigitizerData_]      *
+*Entries :    21187 : Total  Size=     272540 bytes  File Size  =      36672 *
+*Baskets :        8 : Basket Size=     395264 bytes  Compression=   7.41     *
+*............................................................................*
+*Br   34 :fDigitizerData.fCFDPoint2 : Int_t fCFDPoint2[fDigitizerData_]      *
+*Entries :    21187 : Total  Size=     272540 bytes  File Size  =      36672 *
+*Baskets :        8 : Basket Size=     395264 bytes  Compression=   7.41     *
+*............................................................................*
+*Br   35 :fDigitizerData.fFifoIsHalfFull :                                   *
+*         | Bool_t fFifoIsHalfFull[fDigitizerData_]                          *
+*Entries :    21187 : Total  Size=     132536 bytes  File Size  =      35790 *
+*Baskets :        5 : Basket Size=     208896 bytes  Compression=   3.68     *
+*............................................................................*
+*Br   36 :fDigitizerData.fFifoIsAlmostFull :                                 *
+*         | Bool_t fFifoIsAlmostFull[fDigitizerData_]                        *
+*Entries :    21187 : Total  Size=     132554 bytes  File Size  =      35799 *
+*Baskets :        5 : Basket Size=     208896 bytes  Compression=   3.68     *
+*............................................................................*
+*Br   37 :fActiveID : vector<bool>*                                          *
+*Entries :    21187 : Total  Size=     297886 bytes  File Size  =      32612 *
+*Baskets :        9 : Basket Size=     425984 bytes  Compression=   9.12     *
+*............................................................................*
+*Br   38 :fUseAuxWaveformArray : Bool_t                                      *
+*Entries :    21187 : Total  Size=      21903 bytes  File Size  =        335 *
+*Baskets :        2 : Basket Size=     129536 bytes  Compression=  63.78     *
+*............................................................................*
+*Br   39 :fAuxWaveforms : TClonesArray*                                      *
+*Entries :    21187 : Total  Size=     170546 bytes  File Size  =      26886 *
+*Baskets :        6 : Basket Size=     257024 bytes  Compression=   6.32     *
+*............................................................................*
+*Br   40 :fEventNumber : Int_t                                               *
+*Entries :    21187 : Total  Size=      85497 bytes  File Size  =      29911 *
+*Baskets :        3 : Basket Size=     181760 bytes  Compression=   2.84     *
+*............................................................................*
+*Br   41 :channelData : Int_t channelData_                                   *
+*Entries :    21187 : Total  Size=     174201 bytes  File Size  =      42407 *
+*Baskets :        9 : Basket Size=      32000 bytes  Compression=   4.02     *
+*............................................................................*
+*Br   42 :channelData.MGTDataObject : BASE MGTDataObject[channelData_]       *
+*Entries :    21187 : Total  Size=     926112 bytes  File Size  =      49358 *
+*Baskets :       20 : Basket Size=    1303040 bytes  Compression=  18.75     *
+*............................................................................*
+*Br   43 :channelData.fID : UInt_t fID[channelData_]                         *
+*Entries :    21187 : Total  Size=     272414 bytes  File Size  =      73340 *
+*Baskets :        8 : Basket Size=     395264 bytes  Compression=   3.71     *
+*............................................................................*
+*Br   44 :channelData.fChanMapRef : TRef fChanMapRef[channelData_]           *
+*Entries :    21187 : Total  Size=     645978 bytes  File Size  =      43875 *
+*Baskets :       15 : Basket Size=     911872 bytes  Compression=  14.71     *
+*............................................................................*
+*Br   45 :channelData.fChanSetRef : TRef fChanSetRef[channelData_]           *
+*Entries :    21187 : Total  Size=     645978 bytes  File Size  =      43909 *
+*Baskets :       15 : Basket Size=     911872 bytes  Compression=  14.69     *
+*............................................................................*
+*Br   46 :rawFileNumber : vector<int>                                        *
+*Entries :    21187 : Total  Size=     484592 bytes  File Size  =      65770 *
+*Baskets :       12 : Basket Size=     683520 bytes  Compression=   7.36     *
+*............................................................................*

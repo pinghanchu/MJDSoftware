@@ -29,7 +29,8 @@ public:
   virtual ~MJDSkim() {}
   virtual inline TChain* GetSkimTree(){ return fSkimTree; }
 
-  //virtual void SearchDelayedEvent(Double_t fEnr1, Double_t fEnr2, Double_t fTime, string fOutputFile);
+  virtual void SearchDelayedEvent(Double_t fEnr1, Double_t fEnr2, Double_t fTime, string fOutputFile);
+  virtual void SearchMuonCoinEvent(Double_t fEnr, Double_t fTime, string fOutputFile);
   virtual void SearchEnergyEvent(Double_t fEnr1, Double_t fEnrWindow, string fOutputFile);
   virtual TH1D* GetWaveform(Int_t fR,Int_t fEntry, Int_t fChan,Double_t fEnr);
   virtual TH1D* GetHistoSmooth(TH1D* hist, Int_t DeltaBin);
@@ -57,9 +58,14 @@ protected:
   vector<bool>* fIsNat;
   vector<bool>* fIsGood;
   vector<Double_t>* fTrapENFCal;
-  vector<Double_t>* fTimestamp;
+  vector<Double_t>* ftOffset;
+  Double_t flocalTime_s;
   Int_t fmH ;
   vector<Int_t>* fnX;
+  bool fmuVeto;
+  vector<Double_t>* fdtmu_s;
+  Double_t fmuTUnc;
+
   
 
 private:

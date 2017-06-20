@@ -1,7 +1,11 @@
 #!/usr/bin/perl
-system("./MkCookie");
-sleep(5);
-open(my $fin, "<", "./runrange.txt") or die "Failed to open file: $!\n";
+system("\$MGDODIR/bin/MkCookie");
+my $scriptpath = "/global/projecta/projectdirs/majorana/users/pchu/ana/WORK/Apps/";
+my $builtpath = "\$MJDDATADIR/surfprot/data/built/P3END/";
+my $datapath = "/global/projecta/projectdirs/majorana/users/pchu/ana/WORK/MJDGat/List/runlist/";
+my $datafile = $datapath."bk.DSPM.txt";
+my $process = $scriptpath."process_mjd_cal";
+open(my $fin, "<", $datafile) or die "Failed to open file: $!\n";
 while(my $line = <$fin>) {
     chomp $line;
     my @array = split(' ',$line);
@@ -11,12 +15,12 @@ while(my $line = <$fin>) {
 	my $run = $i;
 	my $file = $run;
 	my $app = "fill_".$run.".csh";
-	my $builtfile = "./built/*/OR_run".$run.".root";
+	my $builtfile = $builtpath."OR_run".$run.".root";
 	my $gatfile = "mjd_run".$run.".root";
 	open(my $fh, ">", $app) or die "cannot open";#
 	print $fh "#!/bin/tcsh\n";
-	print $fh "./process_mjd_cal $builtfile\n";
-	print $fh "mv $gatfile GAT/\n";
+	print $fh "$process $builtfile\n";
+	#print $fh "mv $gatfile GAT/\n";
 	close $fh;
 	system("chmod 755 $app");
 	#system("./$z");
