@@ -11,7 +11,7 @@ using namespace std;
 
 int main(int argc, char** argv)
 {
-  if(argc != 3 || atoi(argv[1]) == 0) {
+  if(argc != 3) {
     cout << "Usage: " << argv[0] << " [data set] [subset]" << endl;
     return 1;
   }
