@@ -290,6 +290,8 @@ TH1D* MJDGat::GetWaveform(Int_t fR,Int_t fEntry, Int_t fChan,Double_t fEnr){
     h->SetName(Form("waveform_%d_%d_%d",fR,fEntry,fChan));
     return h;
   }else{
+    TH1D* h =NULL;
+    return h;
     cout << " No this waveform" << endl;
   }
 }
@@ -492,3 +494,123 @@ void MJDGat::SaveSubTree(string FileName){
   delete newfile;
 }
 
+void MJDGat::IsPileUpTag(Int_t fEvent, vector<Int_t>* IsPileUp, vector<Double_t>* Ratio, vector<Double_t>* DeltaT, vector<Double_t>* AE){
+
+  Double_t Xmin = 4000;
+  Double_t Xmax = 19000;
+  if((fRun >=14503 && fRun<=15892) || fRun>=25675){
+    Xmax = 38000;
+  }
+  Double_t fResolution = 1;
+  Double_t fThreshold = 0.01;
+  Double_t fSigma = 5;
+
+  vector<Double_t> xp;
+  vector<Double_t> yp;
+  vector<Double_t> xp1;
+  vector<Double_t> yp1;
+  vector<Double_t> xp2;
+  vector<Double_t> yp2;
+
+  fMjdTree->GetEntry(fEvent);
+  if(fMTEventDC1Bits==0){
+    for(size_t j=0;j<fMTChannel->size();j++){
+      xp.clear();
+      yp.clear();
+      xp1.clear();
+      yp1.clear();
+      xp2.clear();
+      yp2.clear();
+      
+      Int_t fChan = fMTChannel->at(j);
+      Double_t fEnr = fMTTrapENFCal->at(j);
+      if(fEnr>20 && fEnr<12000){
+	TH1D* h = MJDGat::GetWaveform(fRun,fEvent,fChan,fEnr);
+	TH1D* h1 = MJDGat::GetHistoSmooth(h,10);
+	TH1D* h2 = MJDGat::GetHistoDerivative(h1,10);
+	TH1D* h3 = MJDGat::GetHistoSmooth(h2,10);
+	TH1D* h4 = MJDGat::GetHistoDerivative(h3,10);
+	TH1D* h5 = MJDGat::GetHistoSmooth(h4,10);
+	Int_t maxBin0 = h1->GetMaximumBin();
+	Double_t maxX0 = h1->GetBinCenter(maxBin0);    
+	Double_t A = MJDGat::GetMax(h3, Xmin,Xmax);
+	Double_t AoverE = A/fEnr;
+	AE->push_back(AoverE);
+	
+	Int_t nPeak1 = MJDGat::FindPeaks(h3, Xmin, Xmax,fResolution,fSigma, fThreshold, &xp, &yp);
+	if(nPeak1>1 && AoverE>0.002){
+	  for(Int_t ip = 0;ip<(Int_t)xp.size();ip++){
+	    Double_t y = MJDGat::GetYValue(h5, xp.at(ip));
+	    if(abs(y)< 3e-4 && xp.at(ip)< maxX0){
+	      xp1.push_back(xp.at(ip));
+	      yp1.push_back(yp.at(ip));
+	    }
+	  }
+	  if(xp1.size()>1){
+	    IsPileUp->push_back(1);
+	    vector<Int_t> Index2 = MJDGat::Sort(yp1);
+	    for(size_t ip1 = Index2.size()-2;ip1<Index2.size();ip1++){
+	      Int_t ii = Index2.at(ip1);
+	      xp2.push_back(xp1.at(ii));
+	      yp2.push_back(yp1.at(ii));
+	    }
+	    Double_t ratio = yp2.at(1)/yp2.at(0);
+	    Double_t deltaT = xp2.at(0)-xp2.at(1);
+	    Ratio->push_back(ratio);
+	    DeltaT->push_back(deltaT);	
+	  }else{
+	    IsPileUp->push_back(0);
+	    Ratio->push_back(0);
+	    DeltaT->push_back(0);
+	  }
+	}else{
+	  IsPileUp->push_back(0);
+	  Ratio->push_back(0);
+	  DeltaT->push_back(0);
+	}
+
+	delete h;
+	delete h1;
+	delete h2;
+	delete h3;  
+	delete h4;
+	delete h5;
+      }else{
+	IsPileUp->push_back(0);
+	Ratio->push_back(0);
+	DeltaT->push_back(0);
+      }
+    }
+  }else{
+    for(size_t j=0;j<fMTChannel->size();j++){
+      IsPileUp->push_back(0);
+      Ratio->push_back(0);
+      DeltaT->push_back(0);
+    }
+  }
+}
+
+void MJDGat::PileUpTree(const char* pathName){
+  TFile *newfile = new TFile(Form("%spileup_%d.root", pathName, fRun), "recreate");
+  TTree *newtree = new TTree("pileupTree", "pile-up tag");
+  vector<Int_t>* IsPileUp = NULL;
+  vector<Double_t>* PileUpRatio = NULL;
+  vector<Double_t>* PileUpDeltaT =NULL;
+  vector<Double_t>* PileUpAE = NULL;
+  newtree->Branch("IsPileUp",&IsPileUp);
+  newtree->Branch("PileUpRatio", &PileUpRatio);
+  newtree->Branch("PileUpDeltaT", &PileUpDeltaT);
+  newtree->Branch("PileUpAE", &PileUpAE);
+  for(size_t i = 0;i<fEntries;i++){
+    IsPileUp->clear();
+    PileUpRatio->clear();
+    PileUpDeltaT->clear();
+    PileUpAE->clear();
+    MJDGat::IsPileUpTag(i,IsPileUp,PileUpRatio,PileUpDeltaT,PileUpAE);
+    //cout << i << " " << IsPileUp->at(0) << " "<<  fMTChannel->at(0) << " "<< fMTTrapENFCal->at(0) << endl;
+    newtree->Fill();
+  }
+  newtree->Write();
+  cout << "Pile-up file is generated...." <<endl;
+  delete newfile;
+}

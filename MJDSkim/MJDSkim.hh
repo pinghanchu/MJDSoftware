@@ -25,7 +25,7 @@ using namespace std;
 class MJDSkim : public TObject  
 {
 public:   
-  MJDSkim(Int_t Run = 1);
+  MJDSkim(Int_t DataSet = 1, Int_t SubSet = 1);
   virtual ~MJDSkim() {}
   virtual inline TChain* GetSkimTree(){ return fSkimTree; }
 
@@ -41,9 +41,14 @@ public:
   virtual Double_t GetMax(TH1* hist, Double_t Low, Double_t Up);
   virtual vector<Int_t> Sort(vector<Double_t> X);
   virtual vector<Int_t> Clean(vector<Double_t> X); 
+  virtual void IsPileUpTag(Int_t fList, vector<Int_t>* IsPileUp, vector<Double_t>* Ratio, 
+			   vector<Double_t>* DeltaT, vector<Double_t>* AE);
+
+  virtual void PileUpTree(const char* pathName);
 
 protected:
-
+  Int_t fDataSet;
+  Int_t fSubSet;
   TChain* fSkimTree;
   size_t fEntries;
   Int_t fRun;

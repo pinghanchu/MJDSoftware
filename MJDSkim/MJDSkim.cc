@@ -45,9 +45,14 @@ using namespace MJDB;
 ////////////////////////////////////////////////////////
 
 //Set ChannelMap, mjdTree (from GATDataSet), CalibrationPeak, Initial Parameters
-MJDSkim::MJDSkim(Int_t fDataSet) 
+MJDSkim::MJDSkim(Int_t DataSet, Int_t SubSet) 
 {
+  fDataSet = DataSet;
+  fSubSet = SubSet;
+  fSkimTree = new TChain("skimTree");
+  fSkimTree->Add(Form("$MJDDATADIR/surfmjd/analysis/skim/DS%d/GAT-v01-06/skimDS%d_%d.root",fDataSet,fDataSet,fSubSet));
 
+  /*
   if(fDataSet == 0){
     fSkimTree = new TChain("skimTree");
     for(Int_t i =0;i<77;i++){
@@ -81,6 +86,7 @@ MJDSkim::MJDSkim(Int_t fDataSet)
   }else{
     cout << "No this data set!" << endl;
   }
+  */
   fSkimTree->SetBranchStatus("*",1);
   
   fChannel = NULL;
@@ -294,7 +300,7 @@ TH1D* MJDSkim::GetWaveform(Int_t fR,Int_t fEntry, Int_t fChan,Double_t fEnr){
   wb.LoadWaveforms(ds.GetBuiltChain(), cut1, "fWaveforms", Entry);
   size_t i=wb.GetNWaveforms();
   if(i>0){
-    cout << i << endl;
+    //cout << i << endl;
     MGTWaveform *w1 = wb.GetWaveform(i-1).get();
     TH1D* h= (TH1D*)w1->GimmeHist();
     h->SetTitle(Form("Run=%d,Entry=%d, Channel=%d, Energy=%f(keV);Time(ns);ADC",fR,fEntry,fChan,fEnr));
@@ -486,4 +492,122 @@ Double_t MJDSkim::GetMax(TH1* hist, Double_t Low, Double_t Up){
   hist->GetXaxis()->SetRangeUser(Low,Up);
   Double_t xmax = hist->GetMaximum();
   return xmax;
+}
+
+
+void MJDSkim::IsPileUpTag(Int_t fList, vector<Int_t>* IsPileUp, vector<Double_t>* Ratio, vector<Double_t>* DeltaT, vector<Double_t>* AE){
+
+  Double_t Xmin = 4000;
+  Double_t Xmax = 19000;
+  if((fRun >=14503 && fRun<=15892) || fRun>=25675){
+    Xmax = 38000;
+  }
+  Double_t fResolution = 1;
+  Double_t fThreshold = 0.01;
+  Double_t fSigma = 5;
+
+  vector<Double_t> xp;
+  vector<Double_t> yp;
+  vector<Double_t> xp1;
+  vector<Double_t> yp1;
+  vector<Double_t> xp2;
+  vector<Double_t> yp2;
+
+  fSkimTree->GetEntry(fList);
+  
+  for(size_t j=0;j<fChannel->size();j++){
+    xp.clear();
+    yp.clear();
+    xp1.clear();
+    yp1.clear();
+    xp2.clear();
+    yp2.clear();
+    
+    Int_t fChan = fChannel->at(j);
+    Double_t fEnr = fTrapENFCal->at(j);
+    if(fEnr>40 && fEnr<12000){
+      TH1D* h = MJDSkim::GetWaveform(fRun,fEvent,fChan,fEnr);
+      TH1D* h1 = MJDSkim::GetHistoSmooth(h,10);
+      TH1D* h2 = MJDSkim::GetHistoDerivative(h1,10);
+      TH1D* h3 = MJDSkim::GetHistoSmooth(h2,10);
+      TH1D* h4 = MJDSkim::GetHistoDerivative(h3,10);
+      TH1D* h5 = MJDSkim::GetHistoSmooth(h4,10);
+      Int_t maxBin0 = h1->GetMaximumBin();
+      Double_t maxX0 = h1->GetBinCenter(maxBin0);    
+      Double_t A = MJDSkim::GetMax(h3, Xmin,Xmax);
+      Double_t AoverE = A/fEnr;
+      AE->push_back(AoverE);
+      
+      Int_t nPeak1 = MJDSkim::FindPeaks(h3, Xmin, Xmax,fResolution,fSigma, fThreshold, &xp, &yp);
+      if(nPeak1>1 && AoverE>0.002){
+	for(Int_t ip = 0;ip<(Int_t)xp.size();ip++){
+	  Double_t y = MJDSkim::GetYValue(h5, xp.at(ip));
+	  if(abs(y)< 3e-4 && xp.at(ip)< maxX0){
+	    xp1.push_back(xp.at(ip));
+	    yp1.push_back(yp.at(ip));
+	  }
+	}
+	if(xp1.size()>1){
+	  IsPileUp->push_back(1);
+	  vector<Int_t> Index2 = MJDSkim::Sort(yp1);
+	  for(size_t ip1 = Index2.size()-2;ip1<Index2.size();ip1++){
+	    Int_t ii = Index2.at(ip1);
+	    xp2.push_back(xp1.at(ii));
+	    yp2.push_back(yp1.at(ii));
+	  }
+	  Double_t ratio = yp2.at(1)/yp2.at(0);
+	  Double_t deltaT = xp2.at(0)-xp2.at(1);
+	  Ratio->push_back(ratio);
+	  DeltaT->push_back(deltaT);
+	}else{
+	  IsPileUp->push_back(0);
+	  Ratio->push_back(0);
+	  DeltaT->push_back(0);
+	}
+      }else{
+	IsPileUp->push_back(0);
+	Ratio->push_back(0);
+	DeltaT->push_back(0);
+      }
+      
+      delete h;
+      delete h1;
+      delete h2;
+      delete h3;  
+      delete h4;
+      delete h5;
+    }else{
+      IsPileUp->push_back(0);
+      Ratio->push_back(0);
+      DeltaT->push_back(0);
+    }
+  }
+}
+
+
+void MJDSkim::PileUpTree(const char* pathName){
+  TFile *newfile = new TFile(Form("%spileup_%d_%d.root", pathName, fDataSet,fSubSet), "recreate");
+  TTree *newtree = new TTree("pileupTree", "pile-up tag");
+  vector<Int_t>* IsPileUp = NULL;
+  vector<Double_t>* PileUpRatio = NULL;
+  vector<Double_t>* PileUpDeltaT =NULL;
+  vector<Double_t>* PileUpAE = NULL;
+  vector<Double_t>* Energy = NULL;
+  newtree->Branch("IsPileUp",&IsPileUp);
+  newtree->Branch("PileUpRatio", &PileUpRatio);
+  newtree->Branch("PileUpDeltaT", &PileUpDeltaT);
+  newtree->Branch("PileUpAE", &PileUpAE);
+  newtree->Branch("Energy",&Energy);
+  for(size_t i = 0;i<fEntries;i++){
+    IsPileUp->clear();
+    PileUpRatio->clear();
+    PileUpDeltaT->clear();
+    PileUpAE->clear();
+    MJDSkim::IsPileUpTag(i,IsPileUp,PileUpRatio,PileUpDeltaT,PileUpAE);
+    cout << fRun << " " << fEvent<<  " " << i << " " << IsPileUp->at(0) << " "<<  fChannel->at(0) << " "<< fTrapENFCal->at(0) << endl;
+    newtree->Fill();
+  }
+  newtree->Write();
+  cout << "Pile-up file is generated...." <<endl;
+  delete newfile;
 }

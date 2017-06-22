@@ -57,6 +57,8 @@ public:
   virtual vector<Int_t> Sort(vector<Double_t> X);
   virtual vector<Int_t> Clean(vector<Double_t> X); 
   virtual void SaveSubTree(string FileName);
+  virtual void IsPileUpTag(Int_t fEvent, vector<Int_t>* IsPileUp,vector<Double_t>* Ratio, vector<Double_t>* DeltaT, vector<Double_t>* AE);
+  virtual void PileUpTree(const char* pathName);
 
 protected:
   GATAutoCal fDS;
