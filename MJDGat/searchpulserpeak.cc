@@ -16,11 +16,11 @@ int main(int argc, char** argv)
     cout << "Usage: " << argv[0] << " [InputFile Path] [InputFile Name] [Cut] [Input Run File]" << endl;
     return 1;
   }
-
+  
   string fInputPath = argv[1];
   string fInputName = argv[2];
   string fCut = argv[3];
-  string fInputRun = argv[4];
+  string fInputRun = argv[3];
   
   ifstream fin(Form("%s",fInputRun.c_str()));
 

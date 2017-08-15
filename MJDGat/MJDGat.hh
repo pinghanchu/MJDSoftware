@@ -59,7 +59,8 @@ public:
   virtual void SaveSubTree(string FileName);
   virtual void IsPileUpTag(Int_t fEvent, vector<Int_t>* IsPileUp,vector<Double_t>* Ratio, vector<Double_t>* DeltaT, vector<Double_t>* AE);
   virtual void PileUpTree(const char* pathName);
-
+  virtual Int_t PulserCount(vector<Int_t>* PulserChannel);
+ 
 protected:
   GATAutoCal fDS;
   TChain* fMjdTree;
@@ -88,7 +89,7 @@ protected:
   GATTimeInfo* fMTTimeInfo;
   Int_t fMTmH;
   Int_t fMTEventDC1Bits;
-  vector<Double_t>* fMTfastTrapNLCWFsnRisingX;
+  //vector<Double_t>* fMTfastTrapNLCWFsnRisingX;
 
 
 private:

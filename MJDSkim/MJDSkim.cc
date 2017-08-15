@@ -34,7 +34,7 @@
 #include "TVirtualFFT.h"
 #include <iostream>
 #include <bitset>
-
+#include <iomanip> 
 //ClassImp(MJDSkim)
 
 using namespace std;
@@ -45,13 +45,25 @@ using namespace MJDB;
 ////////////////////////////////////////////////////////
 
 //Set ChannelMap, mjdTree (from GATDataSet), CalibrationPeak, Initial Parameters
-MJDSkim::MJDSkim(Int_t DataSet, Int_t SubSet) 
+MJDSkim::MJDSkim(Int_t DataSet, Int_t SubSet, Int_t IsCal) 
 {
   fDataSet = DataSet;
   fSubSet = SubSet;
   fSkimTree = new TChain("skimTree");
-  fSkimTree->Add(Form("$MJDDATADIR/surfmjd/analysis/skim/DS%d/GAT-v01-06/skimDS%d_%d.root",fDataSet,fDataSet,fSubSet));
-
+  fIsCal = IsCal;
+  if(IsCal == 0){
+    if(fDataSet <5){
+      fSkimTree->Add(Form("$MJDDATADIR/surfmjd/analysis/skim/DS%d/GAT-v01-06-72-g02635c4/skimDS%d_%d.root",fDataSet,fDataSet,fSubSet));
+    }else{
+      fSkimTree->Add(Form("$MJDDATADIR/surfmjd/analysis/skim/DS%d/GAT-v01-06-76-g2d9fafb/skimDS%d_%d.root",fDataSet,fDataSet,fSubSet));
+    }
+  }else{
+    if(fDataSet <5){
+      fSkimTree->Add(Form("$MJDDATADIR/surfmjd/analysis/skim/DS%dcal/GAT-v01-06-72-g02635c4/skimDS%d_run%d_small.root",fDataSet,fDataSet,fSubSet));
+    }else{
+      fSkimTree->Add(Form("$MJDDATADIR/surfmjd/analysis/skim/DS%dcal/GAT-v01-06-76-g2d9fafb/skimDS%d_run%d_small.root",fDataSet,fDataSet,fSubSet));
+    }
+  }
   /*
   if(fDataSet == 0){
     fSkimTree = new TChain("skimTree");
@@ -99,9 +111,12 @@ MJDSkim::MJDSkim(Int_t DataSet, Int_t SubSet)
   fIsGood = NULL;
   fTrapENFCal = NULL;
   ftOffset = NULL;
+  fDCR = NULL;
+  fAvsE = NULL;
+  fkvorrT = NULL;
   fnX = NULL;
   fdtmu_s = NULL;
-
+  fglobalTime = NULL;
   fSkimTree->SetBranchAddress("run", &fRun);
   fSkimTree->SetBranchAddress("iEvent", &fEvent);
   fSkimTree->SetBranchAddress("channel",&fChannel);
@@ -113,8 +128,13 @@ MJDSkim::MJDSkim(Int_t DataSet, Int_t SubSet)
   fSkimTree->SetBranchAddress("isNat",&fIsNat);
   fSkimTree->SetBranchAddress("isGood",&fIsGood);
   fSkimTree->SetBranchAddress("trapENFCal", &fTrapENFCal);
+  fSkimTree->SetBranchAddress("globalTime",&fglobalTime);
   fSkimTree->SetBranchAddress("localTime_s",&flocalTime_s);
+  fSkimTree->SetBranchAddress("clockTime_s",&fclockTime_s);
   fSkimTree->SetBranchAddress("tOffset",&ftOffset);
+  fSkimTree->SetBranchAddress("dcr90",&fDCR);
+  fSkimTree->SetBranchAddress("avse",&fAvsE);
+  fSkimTree->SetBranchAddress("kvorrT",&fkvorrT);
   fSkimTree->SetBranchAddress("mHClean",&fmH);
   fSkimTree->SetBranchAddress("nX",&fnX);
   fSkimTree->SetBranchAddress("muVeto",&fmuVeto);
@@ -132,7 +152,8 @@ void MJDSkim::SearchDelayedEvent(Double_t fEnr1, Double_t fEnr2, Double_t fTime,
   //////////////////////////////////////
   //cout << fTime << endl;
   ofstream fout(Form("%s",fOutputFile.c_str()));
-  fout.precision(15);
+  fout << fixed << setprecision(3);
+
   vector<Int_t> Run1;
   vector<Int_t> List1;
   vector<Int_t> Chan1;
@@ -171,6 +192,7 @@ void MJDSkim::SearchDelayedEvent(Double_t fEnr1, Double_t fEnr2, Double_t fTime,
     for(size_t i=0;i<List1.size();i++){
       fSkimTree->GetEntry(List1.at(i));
       Int_t run1 = Run1.at(i);
+      //Double_t time1 = flocalTime_s;
       Double_t time1 = flocalTime_s;
       Double_t time2 = time1;
       Double_t dtmu_s1 = fdtmu_s->at(0);
@@ -194,7 +216,7 @@ void MJDSkim::SearchDelayedEvent(Double_t fEnr1, Double_t fEnr2, Double_t fTime,
 	  Int_t chan2 = fChannel->at(j);
 	  Double_t enr2 = fTrapENFCal->at(j);	    
 	  Double_t dtmu_s2 = fdtmu_s->at(j);
-
+	  Double_t dt = ftOffset->at(j);
 	  if(enr2<fEnr2 && enr2>5 && fIsGood->at(j)==1 && chan2%2==0){
 	    Run2.push_back(run1);
 	    List2.push_back(List1.at(i));
@@ -207,7 +229,7 @@ void MJDSkim::SearchDelayedEvent(Double_t fEnr1, Double_t fEnr2, Double_t fTime,
 	    List3.push_back(ii);
 	    Chan3.push_back(chan2);
 	    Enr3.push_back(enr2);			     
-	    Time3.push_back(time2);
+	    Time3.push_back(time2+dt);
             Event3.push_back(event2);
             Mu_s3.push_back(dtmu_s2);
 	    //cout << time1 << " " << time2 << " "<< time1-time2 << endl;
@@ -282,13 +304,17 @@ void MJDSkim::SearchEnergyEvent(Double_t fEnr, Double_t fEnrWindow, string fOutp
       //Int_t inX = fnX->at(j);
       string pos = Form("%d%d%d",ic,ip,id);
       Double_t dtmu1 = fdtmu_s->at(j);
-
-      if(abs(ienr-fEnr)< fEnrWindow && ichan%2==0 && isGood == 1){
+      Double_t dcr = fDCR->at(j);
+      Double_t avse = fAvsE->at(j);
+      //cout << irun << " " << ievent <<" " << ienr << endl;
+      if(abs(ienr-fEnr)< fEnrWindow && ichan%2==0 && isGood == 1){	
 	fout << irun << " " << i << " " <<  ievent << " " << pos.c_str() << " "<< ichan << " "
-	     << ienr << " "<< time1 << " " << dtmu1 << endl;	    
+	     << ienr << " "<< dcr << " "<< avse << endl;	    
       }      
     }
   }
+  cout << "SearchEnergy file is generated...." <<endl;
+
 }
 
 
@@ -313,7 +339,65 @@ TH1D* MJDSkim::GetWaveform(Int_t fR,Int_t fEntry, Int_t fChan,Double_t fEnr){
   }
 }
 
+TH1D* MJDSkim::TrapezoidalFilter(TH1D* hist, double RampTime, double FlatTime , double DecayTime )
+{
 
+  TH1D *h = (TH1D*)hist->Clone();
+  h->Reset(0);
+  Int_t entries = hist->GetEntries();
+  vector<Double_t> anInput;
+  for(Int_t i1 = 0;i1<entries;i1++){
+    cout << i1 << " "<< hist->GetBinContent(i1) << endl;
+    anInput.push_back(hist->GetBinContent(i1));
+  }
+
+  // Arbitrarily choosing 1000 as decay constant
+  double decayConstant = 0.0;
+  if(DecayTime != 0) decayConstant = 1./(exp(1./DecayTime) - 1);
+  // double decayConstant = 0;
+  double rampStep = RampTime;
+  double flatStep = FlatTime;
+  double baseline = 0; // No baseline for now
+  double norm = rampStep;
+  if(decayConstant != 0)norm *= decayConstant;
+
+  std::vector<double> fVector;
+  std::vector<double> anOutput;
+  if(fVector.size() != anInput.size()) 
+    {
+      fVector.resize(anInput.size());
+      anOutput.resize(anInput.size());
+    }
+
+  fVector[0] = anInput[0] - baseline;
+  anOutput[0] = (decayConstant+1.)*(anInput[0] - baseline);
+  double scratch = 0.0;
+  for(size_t i = 1; i < anInput.size(); i++)
+    {
+      // This is a little tricky with all the ternary operators, but it's faster
+      // this way.  We must check the bounds.
+      scratch = anInput[i]  - ((i>=rampStep) ? anInput[i-rampStep] : baseline)
+	- ((i>=flatStep+rampStep) ? anInput[i-flatStep-rampStep] : baseline)
+	+ ((i>=flatStep+2*rampStep) ? anInput[i-flatStep-2*rampStep] : baseline);  
+      if(decayConstant != 0.0) 
+	{
+	  fVector[i] = fVector[i-1] + scratch; 
+	  anOutput[i] = (anOutput[i-1] + fVector[i] + decayConstant*scratch);
+	  // anOutput[i] /= norm;
+	} 
+      else anOutput[i] = anOutput[i-1] + scratch;
+    }
+  for(size_t i = 2*rampStep+flatStep; i < anInput.size(); i++) anOutput[i-(2*rampStep+flatStep)] = anOutput[i];
+  anOutput.resize(anOutput.size()-(2*rampStep+flatStep));
+  // Rescale event by normalization factor
+  for(size_t i = 1; i < anOutput.size(); i++)anOutput[i] = anOutput[i]/norm;
+  cout << anOutput.size() << " "<< entries << endl;
+  for(size_t i2 = 0;i2<anOutput.size();i2++){
+    h->SetBinContent(i2,anOutput.at(i2));
+  }
+  return h;
+  //return anOutput;
+}
 
 TH1D* MJDSkim::GetHistoSmooth(TH1D* hist, Int_t DeltaBin){
   TH1D *h = (TH1D*)hist->Clone();
@@ -355,6 +439,7 @@ TH1D* MJDSkim::GetHistoSmooth(TH1D* hist, Int_t DeltaBin){
   for(Int_t i = entries-DeltaBin;i<entries;i++){
     h->SetBinContent(i,ave2);
   }
+  h->Draw("wf.pdf");
   return h;
 }
 
@@ -471,7 +556,7 @@ Int_t MJDSkim::FindPeaks(TH1D* hist, Double_t Low, Double_t Up, Double_t Resolut
   Double_t fResolution = Resolution;
   Double_t fSigma = Sigma;
   Double_t fThreshold = Threshold;
-  TSpectrum *s = new TSpectrum(20,fResolution);
+  TSpectrum *s = new TSpectrum(100,fResolution);
   Int_t npeaks = s->Search(hist,fSigma,"new",fThreshold);
 
   Double_t *xpeaks = s->GetPositionX();
@@ -479,8 +564,12 @@ Int_t MJDSkim::FindPeaks(TH1D* hist, Double_t Low, Double_t Up, Double_t Resolut
 
   for(Int_t i=0;i<npeaks;i++){
     if(xpeaks[i]>Low && xpeaks[i]<Up && ypeaks[i]>Ymin){
-      fPositionX->push_back(xpeaks[i]);
-      fPositionY->push_back(ypeaks[i]);
+      hist->GetXaxis()->SetRangeUser(xpeaks[i]-20,xpeaks[i]+20);
+      double ymax = hist->GetMaximum();
+      int xbin = hist->GetMaximumBin();
+      double xmax = hist->GetBinCenter(xbin);
+      fPositionX->push_back(xmax);
+      fPositionY->push_back(ymax);
     }
   }
   npeaks = fPositionX->size();
@@ -495,7 +584,7 @@ Double_t MJDSkim::GetMax(TH1* hist, Double_t Low, Double_t Up){
 }
 
 
-void MJDSkim::IsPileUpTag(Int_t fList, vector<Int_t>* IsPileUp, vector<Double_t>* Ratio, vector<Double_t>* DeltaT, vector<Double_t>* AE){
+void MJDSkim::IsPileUpTag(Int_t fList, vector<Int_t>* IsPileUp, vector<Double_t>* Ratio, vector<Double_t>* DeltaT, vector<Double_t>* AE,vector<Double_t>* Cur){
 
   Double_t Xmin = 4000;
   Double_t Xmax = 19000;
@@ -514,6 +603,7 @@ void MJDSkim::IsPileUpTag(Int_t fList, vector<Int_t>* IsPileUp, vector<Double_t>
   vector<Double_t> yp2;
 
   fSkimTree->GetEntry(fList);
+  ofstream fout(Form("pileup_%d.txt",fRun),ios::app);
   for(size_t j=0;j<fChannel->size();j++){
     xp.clear();
     yp.clear();
@@ -524,33 +614,48 @@ void MJDSkim::IsPileUpTag(Int_t fList, vector<Int_t>* IsPileUp, vector<Double_t>
     
     Int_t fChan = fChannel->at(j);
     Double_t fEnr = fTrapENFCal->at(j);
+    Double_t DCR = fDCR->at(j);
+    if(fEnr>40 && fEnr<12000 && abs(DCR)<0.002){
+      //cout << fEnr << endl;
 
-    if(fEnr>40 && fEnr<12000){
+    //if(fEnr>53-5 && fEnr<67+5){
+
       TH1D* h = MJDSkim::GetWaveform(fRun,fEvent,fChan,fEnr);
-      TH1D* h1 = MJDSkim::GetHistoSmooth(h,10);
-      Double_t maxY = h1->GetMaximum();
+      //cout << fRun << " " << fEvent << " " << fChan << " " << fEnr << endl;
+      //TH1D* h1 = MJDSkim::GetHistoSmooth(h,10);
+      Double_t maxY = h->GetMaximum();
       if(maxY<10000){
-	TH1D* h2 = MJDSkim::GetHistoDerivative(h1,10);
-	TH1D* h3 = MJDSkim::GetHistoSmooth(h2,10);
-	TH1D* h4 = MJDSkim::GetHistoDerivative(h3,10);
-	TH1D* h5 = MJDSkim::GetHistoSmooth(h4,10);
+	TH1D* h2 = MJDSkim::GetHistoDerivative(h,10);
+	//TH1D* h3 = MJDSkim::GetHistoSmooth(h2,10);
+	TH1D* h4 = MJDSkim::GetHistoDerivative(h2,10);
+	//TH1D* h5 = MJDSkim::GetHistoSmooth(h4,10);
 	
-	Int_t maxBin0 = h1->GetMaximumBin();
-	Double_t maxX0 = h1->GetBinCenter(maxBin0);    
-	Double_t A = MJDSkim::GetMax(h3, Xmin,Xmax);
+	Int_t maxBin0 = h->GetMaximumBin();
+	Double_t maxX0 = h->GetBinCenter(maxBin0);    
+	Double_t A = MJDSkim::GetMax(h2, Xmin,Xmax);
 	Double_t AoverE = A/fEnr;
 	AE->push_back(AoverE);
-	
-	Int_t nPeak1 = MJDSkim::FindPeaks(h3, Xmin, Xmax,fResolution,fSigma, fThreshold, &xp, &yp);
-	if(nPeak1>1 && AoverE>0.002){
+	Cur->push_back(A);
+	Int_t nPeak1 = MJDSkim::FindPeaks(h2, Xmin, Xmax,fResolution,fSigma, fThreshold, &xp, &yp);
+	//cout << nPeak1 << endl;
+	if(nPeak1>1){
 	  for(Int_t ip = 0;ip<(Int_t)xp.size();ip++){
-	    Double_t y = MJDSkim::GetYValue(h5, xp.at(ip));
-	    if(abs(y)< 3e-4 && xp.at(ip)< maxX0){
+	    Double_t yabsmin =  10;
+	    for(Int_t is = 0;is<40;is++){
+	      Double_t y = abs(MJDSkim::GetYValue(h4, xp.at(ip)-20+is));
+	      if(y<yabsmin){
+		yabsmin = y;
+	      }
+	    }
+	    //cout << yabsmin << " "<< xp.at(ip) << " "<< yp.at(ip) << endl;
+	    if(abs(yabsmin)< 3e-4 && xp.at(ip)< maxX0){
 	      xp1.push_back(xp.at(ip));
 	      yp1.push_back(yp.at(ip));
+
 	    }
 	  }
 	  if(xp1.size()>1){
+	    
 	    IsPileUp->push_back(1);
 	    vector<Int_t> Index2 = MJDSkim::Sort(yp1);
 	    for(size_t ip1 = Index2.size()-2;ip1<Index2.size();ip1++){
@@ -562,6 +667,7 @@ void MJDSkim::IsPileUpTag(Int_t fList, vector<Int_t>* IsPileUp, vector<Double_t>
 	    Double_t deltaT = xp2.at(0)-xp2.at(1);
 	    Ratio->push_back(ratio);
 	    DeltaT->push_back(deltaT);
+	    fout << fRun << " " << fEvent << " " << fChan << " " << fEnr << " " << ratio << " " << deltaT << " " << AoverE << endl;
 	  }else{
 	    IsPileUp->push_back(0);
 	    Ratio->push_back(0);
@@ -574,20 +680,24 @@ void MJDSkim::IsPileUpTag(Int_t fList, vector<Int_t>* IsPileUp, vector<Double_t>
 	}
 
 	delete h2;
-	delete h3;
+	//delete h3;
 	delete h4;
-	delete h5;
+	//delete h5;
       }else{
 	IsPileUp->push_back(0);
 	Ratio->push_back(0);
 	DeltaT->push_back(0);
+        AE->push_back(0);
+	Cur->push_back(0);
       }
       delete h;
-      delete h1;
+      //delete h1;
     }else{
       IsPileUp->push_back(0);
       Ratio->push_back(0);
       DeltaT->push_back(0);
+      AE->push_back(0);
+      Cur->push_back(0);
     }
   }
 }
@@ -596,26 +706,270 @@ void MJDSkim::IsPileUpTag(Int_t fList, vector<Int_t>* IsPileUp, vector<Double_t>
 void MJDSkim::PileUpTree(const char* pathName){
   TFile *newfile = new TFile(Form("%spileup_%d_%d.root", pathName, fDataSet,fSubSet), "recreate");
   TTree *newtree = new TTree("pileupTree", "pile-up tag");
+
   vector<Int_t>* IsPileUp = NULL;
   vector<Double_t>* PileUpRatio = NULL;
   vector<Double_t>* PileUpDeltaT =NULL;
-  vector<Double_t>* PileUpAE = NULL;
-  vector<Double_t>* Energy = NULL;
+  vector<Double_t>* AE = NULL;
+  vector<Double_t>* A = NULL;
+
+  vector<Int_t> IsPileUp1;
+  vector<Double_t> PileUpRatio1;
+  vector<Double_t> PileUpDeltaT1;
+  vector<Double_t> AE1;
+  vector<Double_t> A1;
+
   newtree->Branch("IsPileUp",&IsPileUp);
   newtree->Branch("PileUpRatio", &PileUpRatio);
   newtree->Branch("PileUpDeltaT", &PileUpDeltaT);
-  newtree->Branch("PileUpAE", &PileUpAE);
+  newtree->Branch("AE", &AE);
+  newtree->Branch("A", &A);
+
+  Int_t Run;
+  Int_t Event;
+  vector<Int_t>* Channel = NULL;
+  vector<Int_t>* C = NULL;
+  vector<Int_t>* P = NULL;
+  vector<Int_t>* D = NULL;
+  vector<bool>* IsEnr = NULL;
+  vector<bool>* IsNat = NULL;
+  vector<bool>* IsGood = NULL;
+  vector<Double_t>* TOffset = NULL;
+  vector<Double_t>* Dtmu_s = NULL;
+  vector<Double_t>* Energy = NULL;
+  vector<Double_t>* DCR = NULL;
+  vector<Double_t>* AvsE = NULL;
+  vector<Double_t>* ToverE = NULL;
+  //vector<Double_t>* TimeDiff = NULL;
+  Double_t LocalTime;
+  Double_t GlobalTime;
+  Int_t mHClean;
+  bool MuVeto;
+  Double_t MuTUnc;
+
+  newtree->Branch("Run", &Run);
+  newtree->Branch("Event", &Event);
+  newtree->Branch("Channel",&Channel);
   newtree->Branch("Energy",&Energy);
-  for(size_t i = 0;i<fEntries;i++){
-    IsPileUp->clear();
-    PileUpRatio->clear();
-    PileUpDeltaT->clear();
-    PileUpAE->clear();
-    MJDSkim::IsPileUpTag(i,IsPileUp,PileUpRatio,PileUpDeltaT,PileUpAE);
-    cout << fRun << " " << fEvent<<  " " << i << " " << IsPileUp->at(0) << " "<<  fChannel->at(0) << " "<< fTrapENFCal->at(0) << endl;
-    newtree->Fill();
+  newtree->Branch("P",&P);
+  newtree->Branch("D",&D);
+  newtree->Branch("C",&C);
+  newtree->Branch("IsEnr",&IsEnr);
+  newtree->Branch("IsNat",&IsNat);
+  newtree->Branch("IsGood",&IsGood);
+  newtree->Branch("LocalTime",&LocalTime);
+  newtree->Branch("GlobalTime",&GlobalTime);
+  newtree->Branch("TOffset",&TOffset);
+  newtree->Branch("mHClean",&mHClean);
+  newtree->Branch("MuVeto",&MuVeto);
+  newtree->Branch("Dtmu_s",&Dtmu_s);
+  newtree->Branch("MuTUnc",&MuTUnc);
+  newtree->Branch("DCR",&DCR);
+  newtree->Branch("AvsE",&AvsE);
+  newtree->Branch("ToverE",&ToverE);
+  //newtree->Branch("TimeDiff", &TimeDiff);
+  Int_t entries = 0;
+  if(fIsCal == 0){
+    entries = fSkimTree->GetEntries();
+  }else{
+    entries = 1000;
+  }
+  for(Int_t i=0;i<entries;i++){
+    Double_t count = 0;
+    //cout << i << endl;
+    fSkimTree->GetEntry(i);
+    /*
+    for(size_t j = 0;j<fChannel->size();j++){
+      if(fTrapENFCal->at(j)>40 && fTrapENFCal->at(j)<12000){
+      	count = count+1;
+	//cout << j << " "<< count << endl;
+      }
+    }
+    */
+
+    //TimeDiff->clear();
+    /*
+    vector<Double_t> tOff;
+    tOff.clear();
+    for(size_t j = 0;j<fChannel->size();j++){
+      tOff.push_back(ftOffset->at(j));
+      //TimeDiff->push_back(ftOffset->at(j));
+    }
+    vector<Int_t> tInd = MJDSkim::Sort(tOff);
+    vector<Double_t> tOffHG;
+    tOffHG.clear();
+    vector<Double_t> tOffLG;
+    tOffLG.clear();
+    vector<Int_t> tIndHG;
+    vector<Int_t> tIndLG;
+    tIndHG.clear();
+    tIndLG.clear();
+    for(size_t j=0;j<tInd.size();j++){
+      if(fChannel->at(j)%2==0){
+	tOffHG.push_back(tOff.at(tInd.at(j)));
+	tIndHG.push_back(tInd.at(j));
+      }else{
+	tOffLG.push_back(tOff.at(tInd.at(j)));
+	tIndLG.push_back(tInd.at(j));
+      }
+    }
+
+    vector<Double_t> tDiffHG;
+    vector<Double_t> tDiffLG;
+    tDiffHG.clear();
+    tDiffLG.clear();
+    if(tOffHG.size()>0){
+      Double_t t0 = tOffHG.at(0);
+      for(size_t j=0;j<tOffHG.size();j++){
+	Double_t t1 = tOffHG.at(j);
+	tDiffHG.push_back(t1-t0);
+	t0 = t1;
+      }
+      for(size_t j=0;j<tIndHG.size();j++){
+	TimeDiff->at(tIndHG.at(j)) = tDiffHG.at(j);
+      }
+    }
+    if(tOffLG.size()>0){
+      Double_t t0 = tOffLG.at(0);
+      for(size_t j=0;j<tOffLG.size();j++){
+	Double_t t1 = tOffLG.at(j);
+	tDiffLG.push_back(t1-t0);
+	t0 = t1;
+      }
+      for(size_t j=0;j<tIndLG.size();j++){
+	TimeDiff->at(tIndLG.at(j)) = tDiffLG.at(j);
+      }
+    }
+*/
+    //cout << count << endl;
+    //if(count>0){
+
+      IsPileUp1.clear();
+      PileUpRatio1.clear();
+      PileUpDeltaT1.clear();
+      AE1.clear();
+      A1.clear();
+      IsPileUp->clear();
+      PileUpRatio->clear();
+      PileUpDeltaT->clear();
+      AE->clear();
+      A->clear();
+      //cout << i << " " << endl;
+      MJDSkim::IsPileUpTag(i,&IsPileUp1,&PileUpRatio1,&PileUpDeltaT1,&AE1,&A1);
+      //cout << IsPileUp1.size() << " " << fChannel->size() << endl;
+      //cout << fRun << " " << fEvent<<  " " << i << " " << IsPileUp->at(0) << " "<<  fChannel->at(0) << " "<< fTrapENFCal->at(0) << endl;
+      //    }else{
+      //cout << fRun << " " << fEvent<<  " " << i << " " << IsPileUp->at(0) << " "<<  fChannel->at(0) << " "<< fTrapENFCal->at(0) << endl;
+      /*
+      for(size_t j = 0;j<fChannel->size();j++){	
+	IsPileUp->push_back(0);
+	PileUpRatio->push_back(0);
+	PileUpDeltaT->push_back(0);
+	AE->push_back(0);
+	A->push_back(0);
+      }      
+      */
+      //cout << IsPileUp->size() << " " << fChannel->size() << endl;
+      //    }
+    
+      Channel->clear();
+      Energy->clear();
+      P->clear();
+      D->clear();
+      C->clear();
+      IsEnr->clear();
+      IsNat->clear();
+      IsGood->clear();
+      TOffset->clear();
+      Dtmu_s->clear();
+      DCR->clear();
+      AvsE->clear();
+      //    if(count>0){
+      Run = fRun;
+      Event = fEvent;
+      LocalTime = flocalTime_s;
+      GlobalTime = fglobalTime->AsDouble();
+      mHClean = fmH;
+      MuVeto = fmuVeto;
+      MuTUnc = fmuTUnc;
+
+      //cout << IsPileUp1.size() << " "<< fChannel->size() << endl;
+      for(size_t j = 0;j<fChannel->size();j++){
+	if(IsPileUp1.at(j)>0){
+
+	  IsPileUp->push_back(IsPileUp1.at(j));
+	  PileUpRatio->push_back(PileUpRatio1.at(j));
+	  PileUpDeltaT->push_back(PileUpDeltaT1.at(j));
+	  AE->push_back(AE1.at(j));
+	  A->push_back(A1.at(j));
+
+	  Channel->push_back(fChannel->at(j));
+	  Energy->push_back(fTrapENFCal->at(j));
+	  P->push_back(fP->at(j));
+	  D->push_back(fD->at(j));
+	  C->push_back(fC->at(j));
+	  IsEnr->push_back(fIsEnr->at(j));
+	  IsNat->push_back(fIsNat->at(j));
+	  IsGood->push_back(fIsGood->at(j));
+	  TOffset->push_back(ftOffset->at(j));
+	  Dtmu_s->push_back(fdtmu_s->at(j));	       
+	  DCR->push_back(fDCR->at(j));
+	  AvsE->push_back(fAvsE->at(j));
+	  ToverE->push_back(fkvorrT->at(j));
+	}
+      }
+      newtree->Fill();      
+	  //	}
+	  //}
+      //}
   }
   newtree->Write();
   cout << "Pile-up file is generated...." <<endl;
+  delete newfile;
+}
+
+void MJDSkim::TimeDiffTree(const char* pathName){
+  TFile *newfile = new TFile(Form("%stimediff_%d_%d.root", pathName, fDataSet,fSubSet), "recreate");
+  TTree *newtree = new TTree("timediffTree", "");
+  vector<Double_t>* TimeDiff = NULL;
+  newtree->Branch("TimeDiff",&TimeDiff);
+  Int_t entries = 0;
+  if(fIsCal == 0){
+    entries = fSkimTree->GetEntries();
+  }else{
+    entries = 1000;
+  }
+  for(Int_t i=0;i<entries;i++){
+    Double_t count = 0;
+    fSkimTree->GetEntry(i);
+    TimeDiff->clear();
+    if(fmH>1){
+      for(size_t j = 0;j<fChannel->size();j++){
+	
+	vector<Double_t> tOff;
+	tOff.clear();
+	for(size_t j = 0;j<fChannel->size();j++){
+	  if(fChannel->at(j)%2==0){
+	    tOff.push_back(ftOffset->at(j));
+	  }
+	}
+	vector<Int_t> tInd = MJDSkim::Sort(tOff);	
+	vector<Double_t> tDiff;
+	tDiff.clear();
+   
+	if(tOff.size()>0){
+	  Double_t t0 = tOff.at(0);
+	  for(size_t j=0;j<tOff.size();j++){
+	    Double_t t1 = tOff.at(j);
+	    TimeDiff->push_back(t1-t0);
+	    t0 = t1;
+	  }
+	}
+      }
+    }
+    newtree->Fill();      
+  }
+  newtree->Write();
+  cout << "TimeDiff file is generated...." <<endl;
   delete newfile;
 }

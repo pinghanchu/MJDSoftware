@@ -29,7 +29,7 @@ for(my $i=0;$i<$subset;$i++){
     my $app  = "pileup_".$file.".csh";
     open(my $fh, ">", $app) or die "cannot open";#
     print $fh "#!/bin/tcsh\n";
-    print $fh "$search $dataset $i\n";   
+    print $fh "$search $dataset $i 0\n";   
     close $fh;
     system("chmod 755 $app");
     system("qsub -l projectio=1 -cwd -o out.$file -e err.$file $app");

@@ -23,11 +23,14 @@
 #include <ctime> //clock_t
 #include "TFile.h"
 #include "TTree.h"
+#include "TLeaf.h"
 #include "GATWaveformTransformer.hh"
 #include "GATWFExtremumProcessor.hh"
 #include "GATPostedDataTreeWriter.hh"
 #include "GATWFTimePointProcessor.hh"
 #include "MGWFBaselineRemover.hh"
+#include "MGWFFlippedBitFixer.hh"
+#include "GATWFFlippedBitFixer.hh"
 #include "GATWFLinearFitProcessor.hh"
 #include "MGWFBySampleDerivative.hh"
 #include "MGWFTrapSlopeFilter.hh"
@@ -79,6 +82,7 @@
 #include "MJTMSWaveform.hh"
 #include "GATMSWFPoster.hh"
 #include "GATThresholdReader.hh"
+//#include "GATPulserTagChanProcessor.hh"
 
 using namespace std;
 using namespace CLHEP;
@@ -88,16 +92,13 @@ int main(int argc, char** argv)
 {
   // Give usage info for no input (user must supply an input file)
   if(argc < 2 || argc > 3) {
-    cout << "Usage: " << argv[0] << " [file] (calibrationMapFile)" << endl;
+    cout << "Usage: " << argv[0] << " [file]" << endl;
     return 1;
   }
 
   // start timer
   clock_t timer;
   timer = clock();
-
-  string calibrationMapFile = "";
-  if(argc == 3) calibrationMapFile = argv[2];
 
 
   // *******************************
@@ -107,12 +108,25 @@ int main(int argc, char** argv)
   // open input file
   TFile* file = TFile::Open(argv[1]);
   if(file == NULL) return 0;
-  // find MGTEvent tree in input file
+
+  // find MGTEvent tree or simTree in input file
   TTree* MGTree = (TTree*) file->Get("MGTree");
-  if(MGTree == NULL) {
-    cout << "MGTree not found" << endl;
+  TTree* simTree = (TTree*) file->Get("simTree");
+  if(MGTree != NULL && simTree == NULL) {
+    cout << "Found MGTree, processing experimental data." << endl;
+  }
+  else if(simTree != NULL && MGTree == NULL) {
+    cout << "Found simTree, processing simulated data." << endl;
+  }
+  else if(MGTree == NULL && simTree == NULL) {
+    cerr << "Could not find MGTree or simTree!" << endl;
     return 0;
   }
+  else {
+    cerr << "Cannot process both MGTree and simTree! Check input file!" << endl;
+    return 0;
+  }
+
   // find MGTEvent tree in input file
   TTree* MCATree = (TTree*) file->Get("MCATree");
   if(MCATree == NULL) {
@@ -131,12 +145,17 @@ int main(int argc, char** argv)
 
   // find MJTRun in input file
   bool bUseMS = false;
+  int runNumber = 0;
   MJTRun* RunSettings = (MJTRun*) file->Get("run");
   if(RunSettings == NULL) {
     cout << "MJTRun not found. Continue" << endl;
+    MGTree->GetEntry(0);
+    runNumber = MGTree->GetLeaf("fRunNumber")->GetValue();
   }
-  else bUseMS = RunSettings->GetUseMultisampling();
-  int runNumber = RunSettings->GetRunNumber();
+  else {
+    bUseMS = RunSettings->GetUseMultisampling();
+    runNumber = RunSettings->GetRunNumber();
+  }
 
   // **********************************
   // Set up data processing environment
@@ -159,37 +178,47 @@ int main(int argc, char** argv)
   // Add event type and timestamp to the intercom
   GATInputDataPoster inputDataPoster;
   inputDataPoster.PostInputLeafTrivial("fEventType","eventType");
-  inputDataPoster.PostInputLeafVector("fDigitizerData.fTimeStamp","timestamp");
-  inputDataPoster.PostInputLeafVector("fDigitizerData.fID","channel");
-  inputDataPoster.PostInputLeafVector("fDigitizerData.fIndex","index");
   selector.AddInput(&inputDataPoster);
+  if(MGTree)
+  {
+    inputDataPoster.PostInputLeafVector("fDigitizerData.fTimeStamp" ,"timestamp");
+    inputDataPoster.PostInputLeafVector("fDigitizerData.fID", "channel");
+    inputDataPoster.PostInputLeafVector("fDigitizerData.fIndex","index");
+  }
+  else if(simTree)
+  {
+    inputDataPoster.PostInputLeafVector("fEnergykeV", "energy");
+    inputDataPoster.PostInputLeafVector("fTimestamp", "timestamp");
+    inputDataPoster.PostInputLeafVector("fGretinaChannels", "channel");
+  }
 
   // add items to copy over from original tree
   mjdDataWriter.AddInputLeafTrivial("fRunNumber", "run");
-  mjdDataWriter.AddInputLeafTrivial("fStartTime", "startTime");
-  mjdDataWriter.AddInputLeafTrivial("fStopTime", "stopTime");
-  mjdDataWriter.AddInputLeafTrivial("fStartClockTime", "startClockTime");
-  mjdDataWriter.AddInputLeafVector("fDigitizerData.fEnergy", "energy");
-  mjdDataWriter.AddInputLeafVector("fDigitizerData.fID", "channel");
-  mjdDataWriter.AddInputLeafVector("fDigitizerData.fIndex", "index");
-  mjdDataWriter.AddInputLeafVector("fDigitizerData.fTimeStamp", "timestamp");
+  if(MGTree)
+  {
+    mjdDataWriter.AddInputLeafVector("fDigitizerData.fEnergy", "energy");
+    mjdDataWriter.AddInputLeafVector("fDigitizerData.fID", "channel");
+    mjdDataWriter.AddInputLeafVector("fDigitizerData.fIndex", "index");
+  }
+  else if(simTree)
+  {
+    mjdDataWriter.AddInputLeafVector("fEnergykeV", "energy");
+    mjdDataWriter.AddInputLeafVector("fGretinaChannels", "channel");
+  }
 
   // Add GAT version info to output tree
   TParameter<uint32_t> gatRevision("gatrev", strtol(GATUtils::GetGATRevision(), NULL, 16));
   inputDataPoster.PostObject(&gatRevision);
   mjdDataWriter.AddPostedTParameter("gatrev");
 
-
   // ********************************************************************
   // Add basic detector, multiplicity, and event time info to output tree
   // ********************************************************************
 
-  // event time info processor: timeMT, dateMT
+  // event time info processor: localtime, globaltime, toffset
   GATEventTimeInfoProcessor eventTimeInfoProcessor;
   selector.AddInput(&eventTimeInfoProcessor);
-  for(size_t i=0; i<eventTimeInfoProcessor.GetNPostedVectors(); i++) {
-    mjdDataWriter.AddPostedVector(eventTimeInfoProcessor.GetNameOfPostedVector(i));
-  }
+  mjdDataWriter.AddPostedObject(eventTimeInfoProcessor.GetNameOfPostedObject());
 
   // detector info processor: detector ID, position / row, enr/nat, etc
   GATDetInfoProcessor detInfoProcessor;
@@ -210,11 +239,20 @@ int main(int argc, char** argv)
 
   // Look for raw wf min and max before doing anything else, "rawWFMax", "rawWFMin"
   GATWFExtremumProcessor rawWFMaxProc(NULL, false, true, "rawWFMax");
-  rawWFMaxProc.GetExtremumFinder().SetLocalMaximumTime(20160.*ns);
+
+  //The local maximum time is only needed for non-multisampled waveforms,
+  //that get chopped off after 20160 ns.  In multisampling mode the entire
+  //waveform is kept, so the max/min search should extend out to the end of the
+  //waveform (which is the default if no maximum time is specified.)
+  if(!bUseMS){
+    rawWFMaxProc.GetExtremumFinder().SetLocalMaximumTime(20160.*ns);
+  }
   selector.AddInput(&rawWFMaxProc);
   mjdDataWriter.AddPostedVector(rawWFMaxProc.GetNameOfPostedVector());
   GATWFExtremumProcessor rawWFMinProc(NULL, false, false, "rawWFMin");
-  rawWFMinProc.GetExtremumFinder().SetLocalMaximumTime(20160.*ns);
+  if(!bUseMS){
+    rawWFMinProc.GetExtremumFinder().SetLocalMaximumTime(20160.*ns);
+  }
   selector.AddInput(&rawWFMinProc);
   mjdDataWriter.AddPostedVector(rawWFMinProc.GetNameOfPostedVector());
 
@@ -232,52 +270,129 @@ int main(int argc, char** argv)
   GATWaveformTransformer *baselineRemoverProc = NULL;
   MGWFNonLinearityCorrector *nlcTransform = NULL;
   GATNonLinearityCorrector *nlcCorrector = NULL;
+  MGWFNonLinearityCorrector *nlc2PassTransform = NULL;
+  GATNonLinearityCorrector *nlc2PassCorrector = NULL;
+  MGWFFlippedBitFixer *bitFlipper = NULL;
+  GATWFFlippedBitFixer *bitFlipperProc = NULL;
+  GATWaveformTransformer *nullTransformer = NULL;
   const char* nlcDBPath = "/project/projectdirs/majorana/data/production/NLCDB";
 
+  //For unpacked waveform max and min.
+  GATWFExtremumProcessor* unpkdWFMaxProc = NULL;
+  GATWFExtremumProcessor* unpkdWFMinProc = NULL;
+
   //if there is an auxiliary waveform(multiple sampling waveform)
-  if(bUseMS)
-    {
+  if(bUseMS) {
       // multisamplewf: unpacked multi-sampled waveform
       wfPoster = new GATMSWFPoster("multisamplewf");
       selector.AddInput(wfPoster);
 
+      // bfwf: bit-flipped waveforms -- waveforms where sticky bits have been fixed
+      bitFlipper = new MGWFFlippedBitFixer;
+      //Check for flipped 6th, 7th, 8th, 9th, and 10th bits
+      bitFlipper->AddBit(6);
+      bitFlipper->AddBit(7);
+      bitFlipper->AddBit(8);
+      bitFlipper->AddBit(9);
+      bitFlipper->AddBit(10);
+      bitFlipper->AddBit(11); //Need to add extra bits to account for larger deviations possible due to multisampling
+      bitFlipper->AddBit(12); //Need to add extra bits to account for larger deviations possible due to multisampling
+      bitFlipper->AddBit(13); //Need to add extra bits to account for larger deviations possible due to multisampling
+      bitFlipperProc = new GATWFFlippedBitFixer(*bitFlipper, "multisamplewf", "bfwf");
+      selector.AddInput(bitFlipperProc);
+      mjdDataWriter.AddPostedVector(bitFlipperProc->GetNameOfPostedVector());
+
       // blrwf: baseline-removed (raw) waveforms -- subtract average of first 200 samples
       baselineRemover = new MGWFBaselineRemover();
       baselineRemover->SetBaselineSamples(200);
-      baselineRemoverProc = new GATWaveformTransformer(*baselineRemover, "multisamplewf", "blrwf");
+      baselineRemoverProc = new GATWaveformTransformer(*baselineRemover, "bfwf", "blrwf");
       selector.AddInput(baselineRemoverProc);
 
       // nlcwf: provide a version of waveforms that are corrected for ADC non-linearities
       nlcTransform = new MGWFNonLinearityCorrector();
       nlcTransform->SetTimeConstant_samples(140); // 1.4 us time constant for Radford time-lagged method
-      nlcCorrector = new GATNonLinearityCorrector(*nlcTransform, nlcDBPath, "multisamplewf", "nlcwf");
+      nlcCorrector = new GATNonLinearityCorrector(*nlcTransform, nlcDBPath, "bfwf", "nlcwf");
       selector.AddInput(nlcCorrector);
-    }
-  else
-    {
+
+      // nlc2wf: provide a version of waveforms that are corrected for ADC non-linearities with 2-pass version
+      nlc2PassTransform = new MGWFNonLinearityCorrector();
+      nlc2PassTransform->SetTimeConstant_samples(190); // 1.9 us time constant for Radford time-lagged method
+      nlc2PassCorrector = new GATNonLinearityCorrector(*nlc2PassTransform, nlcDBPath, "bfwf", "nlc2wf");
+      nlc2PassCorrector->UseTwoPassMethod();
+      selector.AddInput(nlc2PassCorrector);
+
+      //unpkd max and min: Provide as well the maximum and minimum of the unpacked
+      //multisampled waveforms. ("unpkdWFMax" and "unpkdWFMin".)
+      //Consider the full length of the unpacked waveform for the max and min
+      //search.
+      unpkdWFMaxProc = new GATWFExtremumProcessor("bfwf", false, true, "unpkdWFMax");
+      selector.AddInput(unpkdWFMaxProc);
+      mjdDataWriter.AddPostedVector(unpkdWFMaxProc->GetNameOfPostedVector());
+      unpkdWFMinProc = new GATWFExtremumProcessor("bfwf", false, false, "unpkdWFMin");
+      selector.AddInput(unpkdWFMinProc);
+      mjdDataWriter.AddPostedVector(unpkdWFMinProc->GetNameOfPostedVector());
+
+  }
+  else {
       // choppedwf: chop off those last few samples of waveform
       wfWindower = new MGWFWindower(0, 2016);
       chopperProc = new GATWaveformTransformer(*wfWindower, NULL, "choppedwf");
       selector.AddInput(chopperProc);
 
+      // bfwf: bit-flipped waveforms -- waveforms where sticky bits have been fixed
+      bitFlipper = new MGWFFlippedBitFixer;
+      //Check for flipped 6th, 7th, 8th, 9th, and 10th bits
+      bitFlipper->AddBit(6);
+      bitFlipper->AddBit(7);
+      bitFlipper->AddBit(8);
+      bitFlipper->AddBit(9);
+      bitFlipper->AddBit(10);
+      bitFlipper->AddBit(11);
+      bitFlipperProc = new GATWFFlippedBitFixer(*bitFlipper, "choppedwf", "bfwf");
+      selector.AddInput(bitFlipperProc);
+      mjdDataWriter.AddPostedVector(bitFlipperProc->GetNameOfPostedVector());
+
       // blrwf: baseline-removed (raw) waveforms -- subtract average of first 200 samples
       baselineRemover = new MGWFBaselineRemover();
       baselineRemover->SetBaselineSamples(200);
-      baselineRemoverProc = new GATWaveformTransformer(*baselineRemover, "choppedwf", "blrwf");
+      baselineRemoverProc = new GATWaveformTransformer(*baselineRemover, "bfwf", "blrwf");
       selector.AddInput(baselineRemoverProc);
 
       // nlcwf: provide a version of waveforms that are corrected for ADC non-linearities
-      nlcTransform = new MGWFNonLinearityCorrector();
-      nlcTransform->SetTimeConstant_samples(140); // 1.4 us time constant for Radford time-lagged method
-      nlcCorrector = new GATNonLinearityCorrector(*nlcTransform, nlcDBPath, "choppedwf", "nlcwf");
-      selector.AddInput(nlcCorrector);
-    }
+      if(MGTree)
+      {
+        nlcTransform = new MGWFNonLinearityCorrector();
+        nlcTransform->SetTimeConstant_samples(140); // 1.4 us time constant for Radford time-lagged method
+        nlcCorrector = new GATNonLinearityCorrector(*nlcTransform, nlcDBPath, "bfwf", "nlcwf");
+        selector.AddInput(nlcCorrector);
+
+        // nlc2wf: provide a version of waveforms that are corrected for ADC non-linearities with 2-pass version
+        nlc2PassTransform = new MGWFNonLinearityCorrector();
+        nlc2PassTransform->SetTimeConstant_samples(190); // 1.9 us time constant for Radford time-lagged method
+        nlc2PassCorrector = new GATNonLinearityCorrector(*nlc2PassTransform, nlcDBPath, "bfwf", "nlc2wf");
+        nlc2PassCorrector->UseTwoPassMethod();
+        selector.AddInput(nlc2PassCorrector);
+      }
+      // If processing a simulated tree, we don't need to do a non-linearity
+      // correction. So just do another baseline removal (null transform) to add a
+      // waveform with the correct name to the intercom so subsequent processors
+      // can still operate on it.
+      if(simTree)
+      {
+        nullTransformer = new GATWaveformTransformer(*baselineRemover, "blrwf", "nlcwf");
+        selector.AddInput(nullTransformer);
+      }
+  }
 
   // nlcblrwf: baseline-removed ADC-NL-corrected waveforms -- subtract average of first 400 samples
   MGWFBaselineRemover baselineRemover400;
   baselineRemover400.SetBaselineSamples(400);
   GATWaveformTransformer nlcBaselineRemoverProc(baselineRemover400, "nlcwf", "nlcblrwf");
   selector.AddInput(&nlcBaselineRemoverProc);
+
+  // nlc2blrwf: baseline-removed ADC-NL-corrected waveforms -- subtract average of first 400 samples
+  GATWaveformTransformer nlc2BaselineRemoverProc(baselineRemover400, "nlc2wf", "nlc2blrwf");
+  selector.AddInput(&nlc2BaselineRemoverProc);
 
   // sgswf: Savitzky-Golay-smoothed version of nlcblrwf
   //MGWFSavitzkyGolaySmoother sgSmoother(24, 0, 5);
@@ -349,12 +464,12 @@ int main(int argc, char** argv)
   // time points of baseline-subtracted, "blrwfFMRxx"
   GATWFTimePointProcessor* timePointProc = new GATWFTimePointProcessor("blrwf");
   for(size_t iPt = 0; iPt < tpPercents.size(); iPt++) {
-    timePointProc->AddPoint(tpPercents[iPt], tpLabels[iPt].c_str());
+      timePointProc->AddPoint(tpPercents[iPt], tpLabels[iPt].c_str());
   }
   selector.AddInput(timePointProc);
   for(size_t iOut=0; iOut<timePointProc->GetNPostedVectors(); iOut++) {
-    string tpName = timePointProc->GetNameOfPostedVector(iOut);
-    if(tpName.find("FMR") != string::npos) mjdDataWriter.AddPostedVector(tpName.c_str());
+      string tpName = timePointProc->GetNameOfPostedVector(iOut);
+      if(tpName.find("FMR") != string::npos) mjdDataWriter.AddPostedVector(tpName.c_str());
   }
 
   // ********************
@@ -428,6 +543,19 @@ int main(int argc, char** argv)
   selector.AddInput(&trapENFDBProc);
   mjdDataWriter.AddPostedVector(trapENFDBProc.GetNameOfPostedVector());
 
+  // DB-driven optimal trap filter, "trapEN2F"
+  GATTrapezoidalFilter dbTrapFilter2("nlc2blrwf", "dbTrap2", analysisDoc, "trapENF", GATTrapezoidalFilter::kEffQTrapping);
+  dbTrapFilter2.GetTransform().SetDoNormalize();
+  dbTrapFilter2.GetTransform().SetFitAndSubtractFlatBaseline();
+  dbTrapFilter2.GetTransform().SetDoNotResize(false);
+  // currently using constant ramp and flat time for all channels.
+  dbTrapFilter2.SetManualRampTime(4.0*us);
+  dbTrapFilter2.SetManualFlatTime(2.5*us);
+  selector.AddInput(&dbTrapFilter2);
+  GATWFFixedTimePickoffProcessor trapEN2FDBProc(-7.0*us+4.0*us+2.0*us, trapStartTimeProc.GetNameOfPostedVector(), "dbTrap2", "trapEN2F");
+  selector.AddInput(&trapEN2FDBProc);
+  mjdDataWriter.AddPostedVector(trapEN2FDBProc.GetNameOfPostedVector());
+
   // the first sample of the short trap filter for the E=0 peak, "trapENFBL"
   GATTrapezoidalFilter dbTrapFilterBL("nlcblrwf", "dbTrapBL", analysisDoc, "trapENF", GATTrapezoidalFilter::kEffQTrapping);
   dbTrapFilterBL.GetTransform().SetDoNormalize();
@@ -462,32 +590,32 @@ int main(int argc, char** argv)
   vector<GATWFExtremumProcessor*> tsCurrentMaxProcs(nTSFilters);
   vector<GATWFTimePointProcessor*> tsCurrentTimePointProcs(nTSFilters);
   for(size_t i=0; i<nTSFilters; i++) {
-    tsFilters[i] = new MGWFTrapSlopeFilter;
-    tsFilters[i]->SetPeakingTime(10.*ns);
-    tsFilters[i]->SetIntegrationTime(intTimes[i]);
-    tsFilters[i]->SetEvaluateMode(7);
-    tsFilters[i]->OutputInternalParameter("s2");
-    string tsWFs = "TSCurrent";
-    tsWFs += itLabels[i];
-    tsCurrentProcs[i] = new GATWaveformTransformer(*(tsFilters[i]), "blrwf", tsWFs.c_str());
-    selector.AddInput(tsCurrentProcs[i]);
-    tsCurrentMaxProcs[i] = new GATWFExtremumProcessor(tsWFs.c_str());
-    //don't include final sample in maximum search
-    tsCurrentMaxProcs[i]->GetExtremumFinder().SetLocalMaximumTime(20160.*ns);
-    selector.AddInput(tsCurrentMaxProcs[i]);
-    mjdDataWriter.AddPostedVector(tsCurrentMaxProcs[i]->GetNameOfPostedVector());
+      tsFilters[i] = new MGWFTrapSlopeFilter;
+      tsFilters[i]->SetPeakingTime(10.*ns);
+      tsFilters[i]->SetIntegrationTime(intTimes[i]);
+      tsFilters[i]->SetEvaluateMode(7);
+      tsFilters[i]->OutputInternalParameter("s2");
+      string tsWFs = "TSCurrent";
+      tsWFs += itLabels[i];
+      tsCurrentProcs[i] = new GATWaveformTransformer(*(tsFilters[i]), "blrwf", tsWFs.c_str());
+      selector.AddInput(tsCurrentProcs[i]);
+      tsCurrentMaxProcs[i] = new GATWFExtremumProcessor(tsWFs.c_str());
+      //don't include final sample in maximum search
+      tsCurrentMaxProcs[i]->GetExtremumFinder().SetLocalMaximumTime(20160.*ns);
+      selector.AddInput(tsCurrentMaxProcs[i]);
+      mjdDataWriter.AddPostedVector(tsCurrentMaxProcs[i]->GetNameOfPostedVector());
 
-    // add timing when desired
-    if(tsitDoTPs[i]) {
-      tsCurrentTimePointProcs[i] = new GATWFTimePointProcessor(tsWFs.c_str());
-      selector.AddInput(tsCurrentTimePointProcs[i]);
-      for(size_t iPt = 0; iPt < tpPercents.size(); iPt++) {
-        tsCurrentTimePointProcs[i]->AddPoint(tpPercents[iPt], tpLabels[iPt].c_str());
+      // add timing when desired
+      if(tsitDoTPs[i]) {
+          tsCurrentTimePointProcs[i] = new GATWFTimePointProcessor(tsWFs.c_str());
+          selector.AddInput(tsCurrentTimePointProcs[i]);
+          for(size_t iPt = 0; iPt < tpPercents.size(); iPt++) {
+              tsCurrentTimePointProcs[i]->AddPoint(tpPercents[iPt], tpLabels[iPt].c_str());
+          }
+          for(size_t iOut=0; iOut<tsCurrentTimePointProcs[i]->GetNPostedVectors(); iOut++) {
+              mjdDataWriter.AddPostedVector(tsCurrentTimePointProcs[i]->GetNameOfPostedVector(iOut));
+          }
       }
-      for(size_t iOut=0; iOut<tsCurrentTimePointProcs[i]->GetNPostedVectors(); iOut++) {
-        mjdDataWriter.AddPostedVector(tsCurrentTimePointProcs[i]->GetNameOfPostedVector(iOut));
-      }
-    }
   }
 
   //Time-point-based DCR slope "nlcblrwfSlope"
@@ -495,10 +623,11 @@ int main(int argc, char** argv)
   tpSlopeCalculator.SetAverageTime(1.*us);
   //tpSlopeCalculator.SetSecondStartSample(1900);
   GATWFDCRParamProcessor dcrTPSlopeProc(tpSlopeCalculator, "nlcblrwf"); // use adc non-lin corr wf's
-  dcrTPSlopeProc.SetFirstPoint("blrwfFMR97", 200); // blrwfFMR97 should be "close enough" for nlcwf
+  dcrTPSlopeProc.SetFirstPoint("blrwfFMR97", 200, 200, 1700); // blrwfFMR97 should be "close enough" for nlcwf
   dcrTPSlopeProc.UseEndOfWaveform();
   selector.AddInput(&dcrTPSlopeProc);
   mjdDataWriter.AddPostedVector(dcrTPSlopeProc.GetNameOfPostedVector());
+  mjdDataWriter.AddPostedVector(dcrTPSlopeProc.GetNameOfSlopeFlagsVector());
 
   //triangula filter, "triTrapMax" "triTrapIntegralW"
   MGWFTrapezoidalFilter triTrapFilter;
@@ -541,6 +670,11 @@ int main(int argc, char** argv)
   selector.AddInput(&trapENFCalibration);
   mjdDataWriter.AddPostedVector(trapENFCalibration.GetNameOfPostedVector());
 
+  GATEnergyCalibration trapEN2FCalibration(analysisDoc, "trapEN2F");
+  trapEN2FCalibration.UseCalibrationFor("trapENF");
+  selector.AddInput(&trapEN2FCalibration);
+  mjdDataWriter.AddPostedVector(trapEN2FCalibration.GetNameOfPostedVector());
+
 
   // *************************
   // Event level data cleaning
@@ -561,15 +695,27 @@ int main(int argc, char** argv)
   eventDCProc1.SetBitParameter(1, "pinghan_pulser_tag");
   eventDCProc1.SetBitHighCut(1,0.5);
   selector.AddInput(&eventDCProc1);
-
+  /*
+  GATPulserTagChanProcessor pulserTagChanFinder("PulserTagChan",runNumber);
+  const char* pulserTagChanName = Form("./pulser_%i.root",runNumber);
+  pulserTagChanFinder.SetInputFile(pulserTagChanName);
+  pulserTagChanFinder.SetTreeName("pulsertree");
+  pulserTagChanFinder.SetBranchName("PulserTagChan");
+  ifstream pulserTagChanFile(pulserTagChanName);
+  if (pulserTagChanFile.good()) {
+    selector.AddInput(&pulserTagChanFinder);
+    mjdDataWriter.AddPostedVector(pulserTagChanFinder.GetNameOfPulserTagChan());
+  }
+  else cout << "GATPulserTagChanProcessor : No file found.  Proceeding without ...\n";
+  */
   // Clint and Brian's automatic threshold finder
   GATThresholdReader threshFinder("threshKeV","threshSigma",runNumber);
   string threshName = Form("./thresh_%i.root",runNumber);
   ifstream threshFile(threshName);
   if (threshFile.good()) {
-    selector.AddInput(&threshFinder);
-    mjdDataWriter.AddPostedVector(threshFinder.GetNameOfThresholdVector());
-    mjdDataWriter.AddPostedVector(threshFinder.GetNameOfSigmaVector());
+      selector.AddInput(&threshFinder);
+      mjdDataWriter.AddPostedVector(threshFinder.GetNameOfThresholdVector());
+      mjdDataWriter.AddPostedVector(threshFinder.GetNameOfSigmaVector());
   }
   else cout << "GATThresholdReader : No file found.  Proceeding without ...\n";
 
@@ -594,7 +740,7 @@ int main(int argc, char** argv)
   selector.AddInput(&noiseBandsProc);
   mjdDataWriter.AddPostedVector(noiseBandsProc.GetNameOfNormalizedValuesVector());
   for(size_t iParam=0; iParam<noiseBandsProc.GetNPostedVectors(); iParam++) {
-    mjdDataWriter.AddPostedVector(noiseBandsProc.GetNameOfPostedVector(iParam));
+      mjdDataWriter.AddPostedVector(noiseBandsProc.GetNameOfPostedVector(iParam));
   }
 
   // *************************
@@ -654,14 +800,26 @@ int main(int argc, char** argv)
   selector.AddInput(&dc_LateTrigger);
 
   // Saturated WFs /////////////////////////////////////////////
+  //Use unpacked waveform max and min in multisampling mode.
+  //Otherwise, use raw waveform max and min.
   GATDCBoxCut dc_PosSatWFs("PosSaturatedWFs"); // wfDCBits 6
   dc_PosSatWFs.SetInIsBad(true);
-  dc_PosSatWFs.AddDimension("rawWFMax",1,8190,1,8192);
+  if(bUseMS){
+    dc_PosSatWFs.AddDimension("unpkdWFMax",1,8190.5,1,8191.5);
+  }
+  else{
+    dc_PosSatWFs.AddDimension("rawWFMax",1,8190.5,1,8191.5);
+  }
   selector.AddInput(&dc_PosSatWFs);
 
   GATDCBoxCut dc_NegSatWFs("NegSaturatedWFs"); // wfDCBits 7
   dc_NegSatWFs.SetInIsBad(true);
-  dc_NegSatWFs.AddDimension("rawWFMin",1,-8192,1,-8190);
+  if(bUseMS){
+    dc_NegSatWFs.AddDimension("unpkdWFMin",1,-8192.5,1,-8191.5);
+  }
+  else{
+    dc_NegSatWFs.AddDimension("rawWFMin",1,-8192.5,1,-8191.5);
+  }
   selector.AddInput(&dc_NegSatWFs);
 
   //Fast trap for transition layer multi-site detection
@@ -734,8 +892,8 @@ int main(int argc, char** argv)
 
   // Now that the bits are set we can add the data cleaning parameter values to the output tree if we wish
   for(size_t i=0; i<wfdcProc.GetNBits(); i++) {
-    string name = wfdcProc.GetNameOfBit(i);
-    if(name != "") mjdDataWriter.AddPostedVector(name.c_str());
+      string name = wfdcProc.GetNameOfBit(i);
+      if(name != "") mjdDataWriter.AddPostedVector(name.c_str());
   }
   //The Data cleaning processor must be added to the selector at the end!
   selector.AddInput(&wfdcProc);
@@ -745,40 +903,46 @@ int main(int argc, char** argv)
   // ************
 
   selector.AddInput(&mjdDataWriter);
-  MGTree->Process(&selector);
-
+  if(MGTree) MGTree->Process(&selector);
+  else if(simTree) simTree->Process(&selector);
+  else
+  {
+    cerr << "How did you manage to get here? Bad trees that weren't caught "
+         << "already somehow" << endl << "forcing an abort!" << endl;
+    return 1;
+  }
 
   // *************************************
   // Finally, clean up and write to output
   // *************************************
 
   if(MCATree != NULL || ChanMap != NULL || ChanSettings != NULL){
-    string inputFileName = file->GetName();
-    if(inputFileName.find("/") != string::npos) {
-      inputFileName = inputFileName.substr(inputFileName.find_last_of("/")+1);
-    }
-    if(inputFileName.find("OR") != string::npos) {
-      inputFileName = inputFileName.substr(inputFileName.find_last_of("OR")+1);
-    }
-    TFile* outputFileReopen=TFile::Open(("mjd"+inputFileName).c_str(), "UPDATE");
-    outputFileReopen->cd();
-    if(MCATree != NULL) {
-      cout<<"Add MCA Tree"<<endl;
-      TTree *MCATree2=(TTree*)MCATree->CopyTree("1");
-      MCATree2->Write();
-    }
-    if(ChanMap != NULL) {
-      cout<<"Add ChannelMap"<<endl;
-      MJTChannelMap ChanMap2(*ChanMap);
-      ChanMap2.Write();
-    }
-    if(ChanSettings != NULL) {
-      cout<<"Add ChannelSettings"<<endl;
-      MJTChannelSettings ChanSettings2(*ChanSettings);
-      ChanSettings2.Write();
-    }
-    outputFileReopen->Write("",TObject::kOverwrite);
-    outputFileReopen->Close();
+      string inputFileName = file->GetName();
+      if(inputFileName.find("/") != string::npos) {
+          inputFileName = inputFileName.substr(inputFileName.find_last_of("/")+1);
+      }
+      if(inputFileName.find("OR") != string::npos) {
+          inputFileName = inputFileName.substr(inputFileName.find_last_of("OR")+1);
+      }
+      TFile* outputFileReopen=TFile::Open(("mjd"+inputFileName).c_str(), "UPDATE");
+      outputFileReopen->cd();
+      if(MCATree != NULL) {
+          cout<<"Add MCA Tree"<<endl;
+          TTree *MCATree2=(TTree*)MCATree->CopyTree("1");
+          MCATree2->Write();
+      }
+      if(ChanMap != NULL) {
+          cout<<"Add ChannelMap"<<endl;
+          MJTChannelMap ChanMap2(*ChanMap);
+          ChanMap2.Write();
+      }
+      if(ChanSettings != NULL) {
+          cout<<"Add ChannelSettings"<<endl;
+          MJTChannelSettings ChanSettings2(*ChanSettings);
+          ChanSettings2.Write();
+      }
+      outputFileReopen->Write("",TObject::kOverwrite);
+      outputFileReopen->Close();
   }
 
   // stop timer
@@ -788,4 +952,3 @@ int main(int argc, char** argv)
   delete analysisDoc;
   return 0;
 }
-

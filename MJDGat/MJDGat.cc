@@ -81,17 +81,21 @@ MJDGat::MJDGat(Int_t Run) : fDS(Run,Run)
   fMjdTree->SetBranchStatus("trapE", 1);
   fMjdTree->SetBranchStatus("trapENFCal",1);
   fMjdTree->SetBranchStatus("timeinfo", 1);
+  fMjdTree->SetBranchStatus("globalTime", 1);
+  fMjdTree->SetBranchStatus("localTime", 1);
+  fMjdTree->SetBranchStatus("clockTime", 1);
+  fMjdTree->SetBranchStatus("tOffset", 1);
   fMjdTree->SetBranchStatus("mH",1);
   //fMjdTree->SetBranchStatus("mL",1);
   if(Run<45000000 || Run >50000000){
     fMjdTree->SetBranchStatus("EventDC1Bits",1);
-    fMjdTree->SetBranchStatus("fastTrapNLCWFsnRisingX",1);
+    //fMjdTree->SetBranchStatus("fastTrapNLCWFsnRisingX",1);
   }
   fMTChannel = NULL;
   fMTTrapE = NULL;
   fMTTrapENFCal = NULL;
   fMTTimeInfo = NULL;
-  fMTfastTrapNLCWFsnRisingX = NULL;
+  //fMTfastTrapNLCWFsnRisingX = NULL;
 
   fMjdTree->SetBranchAddress("channel", &fMTChannel);
   fMjdTree->SetBranchAddress("trapE", &fMTTrapE);
@@ -100,7 +104,7 @@ MJDGat::MJDGat(Int_t Run) : fDS(Run,Run)
   fMjdTree->SetBranchAddress("mH",&fMTmH);
   if(Run<45000000 || Run >50000000){
     fMjdTree->SetBranchAddress("EventDC1Bits", &fMTEventDC1Bits);
-    fMjdTree->SetBranchAddress("fastTrapNLCWFsnRisingX", &fMTfastTrapNLCWFsnRisingX);
+    //fMjdTree->SetBranchAddress("fastTrapNLCWFsnRisingX", &fMTfastTrapNLCWFsnRisingX);
   }
 
   fMjdTree->GetEntry(0);
@@ -128,7 +132,8 @@ void MJDGat::SeachPulserChannel(string fOutputFile){
     fMjdTree->GetEntry(i);
     IsPulser = fMTEventDC1Bits;    
     if(IsPulser>0){
-      time = fMTTimeInfo->globalTime/1e8;
+      //time1 = fMTTimeInfo->localTime;
+      time = fMTTimeInfo->clockTime/10;
       //hitnum = fMTChannel->size();
       hitnum = 0;
       for(size_t j = 0;j<fMTChannel->size();j++){
@@ -139,10 +144,12 @@ void MJDGat::SeachPulserChannel(string fOutputFile){
 	  }
 	}	  
       }
-      fout << fRun << " " << time << " " << hitnum << endl;
+      if(hitnum >0){
+	fout << fRun << " " <<  time << " " << hitnum << endl;
+      }
     }
-    pulserhit = pulserhit + hitnum;
-    pulserevent = pulserevent+1;
+    //pulserhit = pulserhit + hitnum;
+    //pulserevent = pulserevent+1;
   }
   //fout << fRun << " " << pulserevent << " " << pulserhit << endl;
 }
@@ -239,20 +246,21 @@ void MJDGat::SearchEnergyEvent(Double_t fEnr, Double_t fEnrWindow, string fOutpu
   //vector<Double_t> Enr1;
   for(size_t i=0;i<fEntries;i++){
     fMjdTree->GetEntry(i);
-
-    if((fRun < 45000000 || fRun>50000000)){
+    
+    if((fRun < 45000000 || fRun>5000000)){
       for(size_t j=0;j<fMTChannel->size();j++){	
 	Int_t chan = fMTChannel->at(j);
 	Double_t enr = fMTTrapENFCal->at(j);
 	Int_t index = detid[chan];
+	/*
 	Double_t nX = 1;
 	if((fRun < 45000000 || fRun>50000000)){
 	  nX = fMTfastTrapNLCWFsnRisingX->at(j);
 	}else{
 	  nX = 1;
-	}
+	  }*/
 	if(abs(enr-fEnr)< fEnrWindow && chan%2==0 && fGoodBad.at(index) == 1){
-	  fout << fRun << " " << i << " " << chan << " " << enr << " " << nX << " "<< fMTEventDC1Bits << endl;
+	  fout << fRun << " " << i << " " << chan << " " << enr << " " << fMTEventDC1Bits << endl;
 	}
       }
     }else{
@@ -260,14 +268,16 @@ void MJDGat::SearchEnergyEvent(Double_t fEnr, Double_t fEnrWindow, string fOutpu
         Int_t chan = fMTChannel->at(j);
         Double_t enr = fMTTrapENFCal->at(j);
         Int_t index = detid[chan];
+	/*
         Double_t nX = 1;
         if((fRun < 45000000 || fRun>50000000)){
           nX = fMTfastTrapNLCWFsnRisingX->at(j);
         }else{
           nX = 1;
-        }
+	  }*/
+
         if(abs(enr-fEnr)< fEnrWindow && chan%2==0 && fGoodBad.at(index) == 1){
-          fout << fRun << " " << i << " " << chan << " " << enr << " " << nX << endl;
+          fout << fRun << " " << i << " " << chan << " " << enr << endl;
         }
       }
     }
@@ -613,4 +623,35 @@ void MJDGat::PileUpTree(const char* pathName){
   newtree->Write();
   cout << "Pile-up file is generated...." <<endl;
   delete newfile;
+}
+
+
+Int_t MJDGat::PulserCount(vector<Int_t>* PulserChannel){
+  Int_t pulsernum = 0;
+  const Int_t nChannel = fChannel.size();
+
+  Int_t pulsercount[nChannel];
+  for(Int_t k=0;k<nChannel;k++){
+    pulsercount[k] = 0;
+  }
+  for(size_t i=0;i<fEntries;i++){
+    fMjdTree->GetEntry(i);
+    if(fMTEventDC1Bits>0){
+      pulsernum++;
+      for(size_t j=0;j<fMTChannel->size();j++){
+	Int_t chan = fMTChannel->at(j);
+	for(Int_t k=0;k<nChannel;k++){
+	  if(chan == fChannel.at(k)){
+	    pulsercount[k]++;
+	  }
+	}
+      }
+    }
+  }
+
+  for(Int_t k=0;k<nChannel;k++){
+    PulserChannel->push_back(pulsercount[k]);
+  }
+
+  return pulsernum;
 }

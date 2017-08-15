@@ -10,18 +10,20 @@ using namespace std;
 
 int main(int argc, char** argv)
 {
-  if(argc != 4 ) {
-    cout << "Usage: " << argv[0] << " [dataset] [energy] [delay time]" << endl;
+  if(argc != 6 ) {
+    cout << "Usage: " << argv[0] << " [dataset][subset][isCal] [energy] [delay time]" << endl;
     return 1;
   }
   Int_t fDataSet = atoi(argv[1]);
-  Double_t fEnergy = atof(argv[2]);
-  Double_t fTime = atof(argv[3]);
-  MJDSkim ds(fDataSet);
+  Int_t fSubSet = atoi(argv[2]);
+  Int_t fIsCal = atoi(argv[3]);
+  Double_t fEnergy = atof(argv[4]);
+  Double_t fTime = atof(argv[5]);
+  MJDSkim ds(fDataSet, fSubSet,fIsCal);
   Double_t fQ = 10000;
   Int_t fTimems = (Int_t) 500;
   Double_t fWindow = 20;
-  string fOutputFile = Form("data_%d_%d_%d.txt",fDataSet,(Int_t)fEnergy,fTimems);
+  string fOutputFile = Form("data_%d_%d_%d_%d.txt",fDataSet,fSubSet,(Int_t)fEnergy,fTimems);
   cout << "Searching candidates..." << "energy is " << fEnergy << "; the delayed time is " <<fTimems << endl;
   //ds.SearchEnergyEvent(fEnergy,fWindow,fOutputFile);
   ds.SearchDelayedEvent(fEnergy,fQ,fTime,fOutputFile);
@@ -48,7 +50,7 @@ int main(int argc, char** argv)
   vector<Double_t> Mu_s2;
   if(fin.is_open()){
     while(!fin.eof()){
-      fin >> run1 >> list1 >> entry1 >> channel1 >> enr1 >> time1 >> mu_s1 >> run2 >> list2 >> entry2 >> channel2 >> enr2 >> time2 >> mu_s2 ;
+      fin >> run1 >> list1 >> entry1 >> channel1 >> enr1 >> time1 >> mu_s1 >> run2 >> list2 >> entry2 >> channel2 >> enr2 >> time2 >> mu_s2 ;      
       if(enr1> 51){
 	Run1.push_back(run1);
 	Entry1.push_back(entry1);
@@ -65,34 +67,21 @@ int main(int argc, char** argv)
       }
     }
   }
-  if(Run1.size()>0){
-    Run1.pop_back();
-    Entry1.pop_back();
-    Channel1.pop_back();
-    Enr1.pop_back();
-    Time1.pop_back();
-    Mu_s1.pop_back();
-    Run2.pop_back();
-    Entry2.pop_back();
-    Channel2.pop_back();
-    Enr2.pop_back();
-    Time2.pop_back();
-    Mu_s2.pop_back();
-  }
   vector<Int_t> Index;
-  Index.push_back(0);
-
-  for(size_t i=1;i<Run1.size();i++){
-    if(Run1.at(i)!=Run1.at(i-1) || Entry1.at(i)!=Entry1.at(i-1) || Channel1.at(i)!=Channel1.at(i-1)){
-      Index.push_back(i);
+  if(Run1.size()>0){
+    Index.push_back(0);    
+    for(size_t i=1;i<Run1.size();i++){
+      if(Run1.at(i)!=Run1.at(i-1) || Entry1.at(i)!=Entry1.at(i-1) || Channel1.at(i)!=Channel1.at(i-1)){
+	Index.push_back(i);
+      }
     }
   }
-
+  TCanvas *c1 = new TCanvas("c1");
   if(Index.size()>0){    
     //string fOutputWaveform = Form("waveform_%d_%d_%d.root",fDataSet,(Int_t)fEnergy,fTimems);
     //TFile fhist(Form("%s",fOutputWaveform.c_str()),"update");
-    ofstream fout(Form("wf_%d_%d_%d.txt",fDataSet,(Int_t)fEnergy,fTimems),ios::app);
-    fout.precision(3);
+    ofstream fout(Form("wf_%d_%d_%d_%d.txt",fDataSet,fSubSet,(Int_t)fEnergy,fTimems),ios::app);
+    fout << fixed << setprecision(3);
 
     vector<Double_t> xp;
     vector<Double_t> yp;
@@ -127,7 +116,6 @@ int main(int argc, char** argv)
       Double_t time = Time1.at(ii);
 
       TH1D* h = ds.GetWaveform(run,event,chan,enr);
-      //h->Write();
       TH1D* h1 = ds.GetHistoSmooth(h,10);
       TH1D* h2 = ds.GetHistoDerivative(h1,10);
       TH1D* h3 = ds.GetHistoSmooth(h2,10);
@@ -190,5 +178,5 @@ int main(int argc, char** argv)
       //      fhist.Close();
     }
   }
-
+  cout << "Scaning is done." << endl;
 }

@@ -14,6 +14,91 @@ int main(int argc, char** argv)
     cout << "Usage: " << argv[0] << " [dataset] [energy] [window]" << endl;
     return 1;
   }
+
+  Int_t fDataSet = atoi(argv[1]);
+  Int_t fStartSubSet = atoi(argv[2]);
+  Int_t fEndSubSet = atoi(argv[3]);
+
+  TChain* fSkimTree = new TChain("skimTree");
+  TChain* fPileUpTree = new TChain("pileupTree");
+  
+  for(Int_t i=fStartSubSet;i<=fEndSubSet;i++){
+    fSkimTree->Add(Form("$MJDDATADIR/surfmjd/analysis/skim/DS%d/GAT-v01-06/skimDS%d_%d.root",fDataSet,fDataSet,i));
+    fPileUpTree->Add(Form("./pileup_%d_%d.root",fDataSet,i));
+  }
+  
+  /*
+  vector<Int_t> DataSet;
+  vector<Int_t> SubSet;
+  for(int i = 0;i<6;i++){
+    DataSet.push_back(i);
+  }
+  SubSet.push_back(77);
+  SubSet.push_back(52);
+  SubSet.push_back(8);
+  SubSet.push_back(25);
+  SubSet.push_back(23);
+  SubSet.push_back(113);
+  for(size_t i=0;i<DataSet.size();i++){
+    for(size_t j=0;j<SubSet.at(i);j++){
+      fSkimTree->Add(Form("$MJDDATADIR/surfmjd/analysis/skim/DS%d/GAT-v01-06/skimDS%d_%d.root",DataSet.at(i),DataSet.at(i),j));
+      fPileUpTree->Add(Form("./pileup_%d_%d.root",DataSet.at(i),j));
+    }
+  }
+  */
+  //fSkimTree->AddFriend(fPileUpTree);
+  fSkimTree->SetBranchStatus("*",1);
+  fPileUpTree->SetBranchStatus("*",1);
+
+  Double_t fEnergy = 67.;
+
+  vector<Int_t>* IsPileUp = NULL;
+  vector<Double_t>* PileUpRatio = NULL;
+  vector<Double_t>* PileUpDeltaT =NULL;
+  vector<Double_t>* PileUpAE = NULL;
+  fPileUpTree->SetBranchAddress("IsPileUp",&IsPileUp);
+  fPileUpTree->SetBranchAddress("PileUpRatio", &PileUpRatio);
+  fPileUpTree->SetBranchAddress("PileUpDeltaT", &PileUpDeltaT);
+  fPileUpTree->SetBranchAddress("PileUpAE", &PileUpAE);
+  Int_t fRun;
+  Int_t fEvent;
+  vector<Int_t>* fChannel = NULL;
+  vector<Int_t>* fP = NULL;
+  vector<Int_t>* fD = NULL;
+  vector<Int_t>* fC = NULL;
+  vector<bool>* fIsEnr = NULL;
+  vector<bool>* fIsNat = NULL;
+  vector<bool>* fIsGood = NULL;
+  vector<Double_t>* fTrapENFCal = NULL;
+  fSkimTree->SetBranchAddress("run", &fRun);
+  fSkimTree->SetBranchAddress("iEvent", &fEvent);
+  fSkimTree->SetBranchAddress("channel",&fChannel);
+  fSkimTree->SetBranchAddress("P",&fP);
+  fSkimTree->SetBranchAddress("D",&fD);
+  fSkimTree->SetBranchAddress("C",&fC);
+  fSkimTree->SetBranchAddress("isEnr",&fIsEnr);
+  fSkimTree->SetBranchAddress("isNat",&fIsNat);
+  fSkimTree->SetBranchAddress("isGood",&fIsGood);
+  fSkimTree->SetBranchAddress("trapENFCal", &fTrapENFCal);
+
+  ofstream fout("pileup.txt",ios::app);
+  //fSkimTree->GetEntry(0);
+  //cout << fSkimTree->GetEntries() << " "<< fPileUpTree->GetEntries() << endl;
+  for(Int_t ie=0;ie<fSkimTree->GetEntries();ie++){
+    fSkimTree->GetEntry(ie);
+    fPileUpTree->GetEntry(ie);
+    //cout << ie << " " << fRun << " " << fEvent << " " << fChannel->size() << endl;
+    //cout << PileUpAE->size() << " " << fChannel->size() << endl;
+    for(size_t j =0;j<fChannel->size();j++){
+      if( IsPileUp->at(j)>0 && abs(fTrapENFCal->at(j)-fEnergy)<20. && PileUpRatio->at(j)>2 && PileUpRatio->at(j)<10 ){
+	//&& PileUpAE->at(j)>0.002 && PileUpRatio->at(j)>2 && PileUpRatio->at(j)<5){
+    	//cout << fRun << " "<< fEvent<< " " << fChannel->at(j) << " " << fTrapENFCal->at(j) << " " << PileUpAE->at(j) << " " <<  PileUpRatio->at(j) << " " << PileUpDeltaT->at(j) << endl;
+	fout << fRun << " " << fEvent << " "<< fChannel->at(j) << " " << fTrapENFCal->at(j) << " " << PileUpRatio->at(j) << " "<< PileUpDeltaT->at(j) <<  endl;
+      }
+    }
+  }
+
+  /*
   Int_t fDataSet = atoi(argv[1]);
   Double_t fEnergy = atof(argv[2]);
   //Double_t fTime = atof(argv[3]);
@@ -57,6 +142,7 @@ int main(int argc, char** argv)
     Time1.pop_back();
     Mu_s1.pop_back();
   }
+  */
   /*
   vector<Int_t> Index;
   Index.push_back(0);
@@ -67,6 +153,7 @@ int main(int argc, char** argv)
     }
   }
   */
+  /*
   if(Run1.size()>0){    
     //string fOutputWaveform = Form("waveform_%d_%d_%d.root",fDataSet,(Int_t)fEnergy,fTimems);
     //TFile fhist(Form("%s",fOutputWaveform.c_str()),"update");
@@ -171,5 +258,5 @@ int main(int argc, char** argv)
       //      fhist.Close();
     }
   }
-
+*/
 }
