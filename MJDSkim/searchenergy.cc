@@ -25,5 +25,5 @@ int main(int argc, char** argv)
   MJDSkim ds(fDataSet,fSubSet,fIsCal);
   string fOutputFile = Form("data_%d_%d.txt",fDataSet,fSubSet);
   ds.SearchEnergyEvent(fEnergy,fWindow,fOutputFile);
-  cout << " " << endl;
+  cout << "The scan is done!" << endl;
 }

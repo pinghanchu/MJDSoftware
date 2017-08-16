@@ -35,38 +35,47 @@ int main(int argc, char** argv)
   Double_t enr1,time1,mu_s1;
   Int_t run2,list2,entry2,channel2;
   Double_t enr2,time2,mu_s2;
-
+  Double_t dcr1,dcr2;
+  Double_t difftime;
   vector<Int_t> Run1;
   vector<Int_t> Entry1;
   vector<Int_t> Channel1;
   vector<Double_t> Enr1;
   vector<Double_t> Time1;
   vector<Double_t> Mu_s1;
+  vector<Double_t> DCR1;
   vector<Int_t> Run2;
   vector<Int_t> Entry2;
   vector<Int_t> Channel2;
   vector<Double_t> Enr2;
   vector<Double_t> Time2;
   vector<Double_t> Mu_s2;
+  vector<Double_t> DCR2;
+
   if(fin.is_open()){
     while(!fin.eof()){
-      fin >> run1 >> list1 >> entry1 >> channel1 >> enr1 >> time1 >> mu_s1 >> run2 >> list2 >> entry2 >> channel2 >> enr2 >> time2 >> mu_s2 ;      
-      if(enr1> 51){
+      fin >> run1 >> list1 >> entry1 >> channel1 >> enr1 >> time1 >> mu_s1 >> dcr1 >> 
+	run2 >> list2 >> entry2 >> channel2 >> enr2 >> time2 >> mu_s2 >> dcr2 >> difftime;      
+      if(enr1>53-5 && enr1<67+5 && !((enr1>49 && enr1<51) && (dcr1>0.015 && dcr1<0.018))  && !( enr1>49 && enr1<52 && dcr1>0.004 && dcr1<0.006) && !(enr1>48&&enr1<58 && dcr1<-0.004 && dcr1>-0.006)){
+	//if(enr1> 48 && enr1<72){
 	Run1.push_back(run1);
 	Entry1.push_back(entry1);
 	Channel1.push_back(channel1);
 	Enr1.push_back(enr1);
 	Time1.push_back(time1);
 	Mu_s1.push_back(mu_s1);
+	DCR1.push_back(dcr1);
 	Run2.push_back(run2);
 	Entry2.push_back(entry2);
 	Channel2.push_back(channel2);
 	Enr2.push_back(enr2);
 	Time2.push_back(time2);
 	Mu_s2.push_back(mu_s2);
+	DCR2.push_back(dcr2);
       }
     }
   }
+ 
   vector<Int_t> Index;
   if(Run1.size()>0){
     Index.push_back(0);    
@@ -80,8 +89,8 @@ int main(int argc, char** argv)
   if(Index.size()>0){    
     //string fOutputWaveform = Form("waveform_%d_%d_%d.root",fDataSet,(Int_t)fEnergy,fTimems);
     //TFile fhist(Form("%s",fOutputWaveform.c_str()),"update");
-    ofstream fout(Form("wf_%d_%d_%d_%d.txt",fDataSet,fSubSet,(Int_t)fEnergy,fTimems),ios::app);
-    fout << fixed << setprecision(3);
+    //ofstream fout(Form("wf_%d_%d_%d_%d.txt",fDataSet,fSubSet,(Int_t)fEnergy,fTimems),ios::app);
+    //fout << fixed << setprecision(3);
 
     vector<Double_t> xp;
     vector<Double_t> yp;
@@ -101,7 +110,7 @@ int main(int argc, char** argv)
     
     for(size_t i=0;i<Index.size();i++){
       Int_t ii = Index.at(i);
-      cout << Run1.at(ii) << " " << Entry1.at(ii) << " " << Channel1.at(ii) << " " << Enr1.at(ii) << " " << Mu_s1.at(ii) << endl;
+      cout << Run1.at(ii) << " " << Entry1.at(ii) << " " << Channel1.at(ii) << " " << Enr1.at(ii) << " " << Mu_s1.at(ii) << " " << DCR1.at(ii) << endl;
       xp.clear();
       yp.clear();
       xp1.clear();
@@ -116,24 +125,28 @@ int main(int argc, char** argv)
       Double_t time = Time1.at(ii);
 
       TH1D* h = ds.GetWaveform(run,event,chan,enr);
-      TH1D* h1 = ds.GetHistoSmooth(h,10);
-      TH1D* h2 = ds.GetHistoDerivative(h1,10);
-      TH1D* h3 = ds.GetHistoSmooth(h2,10);
-      TH1D* h4 = ds.GetHistoDerivative(h3,10);
-      TH1D* h5 = ds.GetHistoSmooth(h4,10);
-      TH1*  hFFT = ds.GetHistoFFT(h);
+      TH1D* h2 = ds.GetHistoDerivative(h,10);
+      TH1D* h4 = ds.GetHistoDerivative(h2,10);
+      string name1 = Form("waveform_%d_%d_%d",run,event,chan);
+      string name2 = Form("waveform1_%d_%d_%d",run,event,chan);
+      string name3 = Form("waveform2_%d_%d_%d",run,event,chan);
 
-      h3->SetName(Form("waveform1_%d_%d_%d",run,event,chan));
-      h5->SetName(Form("waveform2_%d_%d_%d",run,event,chan));
-      hFFT->SetName(Form("waveformFFT_%d_%d_%d",run,event,chan));
-      //h1->Write();
-      h3->GetXaxis()->SetRangeUser(0,20000);
+      h2->SetName(Form("%s",name2.c_str()));
+      h4->SetName(Form("%s",name3.c_str()));
+      h->Draw();
+      c1->Print(Form("%s.pdf",name1.c_str()));
+      h2->Draw();
+      c1->Print(Form("%s.pdf",name2.c_str()));
+      h4->Draw();
+      c1->Print(Form("%s.pdf",name3.c_str()));
+
+      //h2->GetXaxis()->SetRangeUser(0,20000);
       //h3->Write();
       //h5->Write();
-      hFFT->GetXaxis()->SetRangeUser(0,1000);
+      //hFFT->GetXaxis()->SetRangeUser(0,1000);
       //hFFT->Write();
 
-
+      /*
       // Cut1
       Double_t maxFFT = ds.GetMax(hFFT, 50.,150.); 
       //Double_t maxY0 = ds.GetMax(h1, 100,Xmax);
@@ -176,6 +189,7 @@ int main(int argc, char** argv)
 	delete hFFT;
       }
       //      fhist.Close();
+      */
     }
   }
   cout << "Scaning is done." << endl;

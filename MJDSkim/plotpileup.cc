@@ -2,6 +2,7 @@
 #include "GATAutoCal.hh"
 #include "TStyle.h"
 #include "TFile.h"
+#include "TROOT.h"
 #include <fstream>
 #include <iostream>
 #include <algorithm>
@@ -20,7 +21,8 @@ int main(int argc, char** argv)
   Int_t fStartSubSet = atoi(argv[2]);
   Int_t fEndSubSet = atoi(argv[3]);
   TCanvas *c1 = new TCanvas("c1");
-
+  //gROOT->SetStyle("Plain");
+  gStyle->SetOptStat(0);  
   
   TChain* fSkimTree = new TChain("skimTree");
   vector<Int_t> DataSet;
@@ -35,27 +37,25 @@ int main(int argc, char** argv)
   SubSet.push_back(18);
   SubSet.push_back(112);
 
+  string path = "GAT-v01-06-125-gd9332b6";
+
+
   if(fStartSubSet != fEndSubSet && fEndSubSet!=0){
-    if(fDataSet<5){
-      for(Int_t i=fStartSubSet;i<=fEndSubSet;i++){
-	fSkimTree->Add(Form("$MJDDATADIR/surfmjd/analysis/skim/DS%dcal/GAT-v01-06-72-g02635c4/skimDS%d_run%d_small.root",fDataSet,fDataSet,i));
-      }
-    }else{
-      for(Int_t i=fStartSubSet;i<=fEndSubSet;i++){
-	fSkimTree->Add(Form("$MJDDATADIR/surfmjd/analysis/skim/DS%dcal/GAT-v01-06-76-g2d9fafb/skimDS%d_run%d_small.root",fDataSet,fDataSet,i));
-      }
+    for(Int_t i=fStartSubSet;i<=fEndSubSet;i++){
+      fSkimTree->Add(Form("$MJDDATADIR/surfmjd/analysis/skim/DS%dcal/%s/skimDS%d_run%d_small.root",fDataSet,path.c_str(),fDataSet,i));
     }
   }else{
     for(size_t i=0;i<DataSet.size();i++){
       for(Int_t j=0;j<=SubSet.at(i);j++){
-	if(DataSet.at(i)<5){
-	  fSkimTree->Add(Form("$MJDDATADIR/surfmjd/analysis/skim/DS%d/GAT-v01-06-72-g02635c4/skimDS%d_%d.root",DataSet.at(i),DataSet.at(i),j));
-	}else{
-	  fSkimTree->Add(Form("$MJDDATADIR/surfmjd/analysis/skim/DS%d/GAT-v01-06-76-g2d9fafb/skimDS%d_%d.root",DataSet.at(i),DataSet.at(i),j));
-	}
+	fSkimTree->Add(Form("$MJDDATADIR/surfmjd/analysis/skim/DS%d/%s/skimDS%d_%d.root",DataSet.at(i),path.c_str(),DataSet.at(i),j));
       }
     }
   }
+
+  TH1D *h1 = new TH1D("h1","",30000,0,30000);
+  fSkimTree->Draw("run>>h1","dcr99<0.006 && dcr99>0.004 && trapENFCal< 60 && trapENFCal>40");
+  h1->Draw();
+  c1->Print("h1.pdf");
   /*
   //////AvsE
   c1->SetLogy();
@@ -74,61 +74,75 @@ int main(int argc, char** argv)
   a2->Draw("COLZ");
   c1->Print("Energy_AvsE.pdf");
   c1->Update();
-*/
+
   c1->SetLogz();
-  /*
+
   TH2D *ad1 = new TH2D("ad1","DCR vs AvsE",5000,-2000,3000,400,-0.2,0.2);
-  fSkimTree->Draw("dcr90:avse>>ad1");
+  fSkimTree->Draw("dcr99:avse>>ad1");
   ad1->SetTitle(";AvsE;DCR");
   ad1->Draw("COLZ");
   c1->Print("AvsE_DCR.pdf");
   c1->Update();
-*/
-  TH2D *ad2 = new TH2D("ad2","DCR vs AvsE",110,-100,10,30,-0.01,0.02);
-  fSkimTree->Draw("dcr90:avse>>ad2","trapENFCal>48 && trapENFCal<72");
+
+  TH2D *ad2 = new TH2D("ad2","DCR vs AvsE",1100,-80,30,300,-0.01,0.02);
+  //fSkimTree->Draw("dcr99:avse>>ad2","trapENFCal>48 && trapENFCal<72");
+  fSkimTree->Draw("dcr99:avse>>ad2");
+
   ad2->SetTitle(";AvsE;DCR");
   ad2->Draw("COLZ");
   c1->Print("AvsE_DCR_Zoom_In.pdf");
   c1->Update();
 
+
   ////DCR
   c1->SetLogz();
-  TH2D *d2 = new TH2D("d2","DCR vs Enr",24,48,72,300,-0.01,0.02);
-  fSkimTree->Draw("dcr90:trapENFCal>>d2");
+  //TH2D *d2 = new TH2D("d2","DCR vs Enr",240,48,72,300,-0.01,0.02);
+  TH2D *d2 = new TH2D("d2","DCR vs Enr",280,200,3000,300,-0.01,0.02);
+
+  fSkimTree->Draw("dcr99:trapENFCal>>d2");
   d2->SetTitle(";Energy(keV);DCR");
   d2->Draw("COLZ");
   c1->Print("Energy_DCR_ROI.pdf");
   c1->Update();
 
-  /*
   c1->SetLogz();
-  TH2D *d2 = new TH2D("d2","DCR vs Enr",300,0,3000,1000,-0.5,0.05);
-  fSkimTree->Draw("dcr90:trapENFCal>>d2");
-  d2->SetTitle(";Energy(keV);DCR");
-  d2->Draw("COLZ");
+  TH2D *d3 = new TH2D("d3","DCR vs Enr",280,200,3000,1000,-0.05,0.05);
+  fSkimTree->Draw("dcr99:trapENFCal>>d3");
+  d3->SetTitle(";Energy(keV);DCR");
+  d3->Draw("COLZ");
   c1->Print("Energy_DCR.pdf");
   c1->Update();
 
   c1->SetLogy();
   TH1D *d1 = new TH1D("d1","DCR",10000,-0.5,0.5);
-  fSkimTree->Draw("dcr90>>d1");
+  fSkimTree->Draw("dcr99>>d1");
   d1->SetTitle(";DCR;");
   d1->Draw();
   c1->Print("DCR.pdf");
   c1->Update();
-  */
+
   c1->SetLogy();
-  TH1D *d3 = new TH1D("d3","DCR",10000,-0.01,0.01);
-  fSkimTree->Draw("dcr90>>d3","trapENFCal>40 && trapENFCal<80");
-  d3->SetTitle(";DCR;");
-  d3->Draw();
+  TH1D *d4 = new TH1D("d4","DCR",10000,-0.01,0.01);
+  fSkimTree->Draw("dcr99>>d4","trapENFCal>48 && trapENFCal<72");
+  d4->SetTitle(";DCR;");
+  d4->Draw();
   c1->Print("DCR_EnergyCut_ROI.pdf");
   c1->Update();
+
+  c1->SetLogy();
+  TH1D *d5 = new TH1D("d5","DCR",10000,-0.01,0.01);
+  fSkimTree->Draw("dcr99>>d5","trapENFCal>200 && trapENFCal<500");
+  d5->SetTitle(";DCR;");
+  d5->Draw();
+  c1->Print("DCR_EnergyCut_ROI_2.pdf");
+  c1->Update();
+
+
 
   c1->SetLogy(0);
   c1->SetLogz(0);
 
-
+  */
 
   ////////////////////////
   /*
@@ -148,7 +162,7 @@ int main(int argc, char** argv)
       }
     }
   }
-  /*
+
   
   fPileUpTree->SetBranchStatus("*",1);
 

@@ -51,54 +51,14 @@ MJDSkim::MJDSkim(Int_t DataSet, Int_t SubSet, Int_t IsCal)
   fSubSet = SubSet;
   fSkimTree = new TChain("skimTree");
   fIsCal = IsCal;
+  string path = "GAT-v01-06-125-gd9332b6";
+
   if(IsCal == 0){
-    if(fDataSet <5){
-      fSkimTree->Add(Form("$MJDDATADIR/surfmjd/analysis/skim/DS%d/GAT-v01-06-72-g02635c4/skimDS%d_%d.root",fDataSet,fDataSet,fSubSet));
-    }else{
-      fSkimTree->Add(Form("$MJDDATADIR/surfmjd/analysis/skim/DS%d/GAT-v01-06-76-g2d9fafb/skimDS%d_%d.root",fDataSet,fDataSet,fSubSet));
-    }
+    fSkimTree->Add(Form("$MJDDATADIR/surfmjd/analysis/skim/DS%d/%s/skimDS%d_%d.root",fDataSet,path.c_str(),fDataSet,fSubSet));
   }else{
-    if(fDataSet <5){
-      fSkimTree->Add(Form("$MJDDATADIR/surfmjd/analysis/skim/DS%dcal/GAT-v01-06-72-g02635c4/skimDS%d_run%d_small.root",fDataSet,fDataSet,fSubSet));
-    }else{
-      fSkimTree->Add(Form("$MJDDATADIR/surfmjd/analysis/skim/DS%dcal/GAT-v01-06-76-g2d9fafb/skimDS%d_run%d_small.root",fDataSet,fDataSet,fSubSet));
-    }
+    fSkimTree->Add(Form("$MJDDATADIR/surfmjd/analysis/skim/DS%dcal/%s/skimDS%d_run%d_small.root",fDataSet,path.c_str(),fDataSet,fSubSet));
   }
-  /*
-  if(fDataSet == 0){
-    fSkimTree = new TChain("skimTree");
-    for(Int_t i =0;i<77;i++){
-      fSkimTree->Add(Form("$MJDDATADIR/surfmjd/analysis/skim/DS0/GAT-v01-06/skimDS0_%d.root",i));
-    }
-  }else if(fDataSet == 1){    
-    fSkimTree = new TChain("skimTree");
-    for(Int_t i =0;i<52;i++){
-      fSkimTree->Add(Form("$MJDDATADIR/surfmjd/analysis/skim/DS1/GAT-v01-06/skimDS1_%d.root",i));
-    }
-  }else if(fDataSet == 2){
-    fSkimTree = new TChain("skimTree");
-    for(Int_t i =0;i<8;i++){
-      fSkimTree->Add(Form("$MJDDATADIR/surfmjd/analysis/skim/DS2/GAT-v01-06/skimDS2_%d.root",i));
-    }
-  }else if(fDataSet == 3){
-    fSkimTree = new TChain("skimTree");
-    for(Int_t i =0;i<25;i++){
-      fSkimTree->Add(Form("$MJDDATADIR/surfmjd/analysis/skim/DS3/GAT-v01-06/skimDS3_%d.root",i));
-    }
-  }else if(fDataSet == 4){
-    fSkimTree = new TChain("skimTree");
-    for(Int_t i =0;i<23;i++){
-      fSkimTree->Add(Form("$MJDDATADIR/surfmjd/analysis/skim/DS4/GAT-v01-06/skimDS4_%d.root",i));
-    }
-  }else if(fDataSet == 5){
-    fSkimTree = new TChain("skimTree");
-    for(Int_t i =0;i<113;i++){
-      fSkimTree->Add(Form("$MJDDATADIR/surfmjd/analysis/skim/DS5/GAT-v01-06/skimDS5_%d.root",i));
-    }
-  }else{
-    cout << "No this data set!" << endl;
-  }
-  */
+
   fSkimTree->SetBranchStatus("*",1);
   
   fChannel = NULL;
@@ -113,7 +73,6 @@ MJDSkim::MJDSkim(Int_t DataSet, Int_t SubSet, Int_t IsCal)
   ftOffset = NULL;
   fDCR = NULL;
   fAvsE = NULL;
-  fkvorrT = NULL;
   fnX = NULL;
   fdtmu_s = NULL;
   fglobalTime = NULL;
@@ -127,14 +86,13 @@ MJDSkim::MJDSkim(Int_t DataSet, Int_t SubSet, Int_t IsCal)
   fSkimTree->SetBranchAddress("isEnr",&fIsEnr);
   fSkimTree->SetBranchAddress("isNat",&fIsNat);
   fSkimTree->SetBranchAddress("isGood",&fIsGood);
-  fSkimTree->SetBranchAddress("trapENFCal", &fTrapENFCal);
+  fSkimTree->SetBranchAddress("trapENFCalC", &fTrapENFCal);
   fSkimTree->SetBranchAddress("globalTime",&fglobalTime);
   fSkimTree->SetBranchAddress("localTime_s",&flocalTime_s);
   fSkimTree->SetBranchAddress("clockTime_s",&fclockTime_s);
   fSkimTree->SetBranchAddress("tOffset",&ftOffset);
-  fSkimTree->SetBranchAddress("dcr90",&fDCR);
+  fSkimTree->SetBranchAddress("dcr99",&fDCR);
   fSkimTree->SetBranchAddress("avse",&fAvsE);
-  fSkimTree->SetBranchAddress("kvorrT",&fkvorrT);
   fSkimTree->SetBranchAddress("mHClean",&fmH);
   fSkimTree->SetBranchAddress("nX",&fnX);
   fSkimTree->SetBranchAddress("muVeto",&fmuVeto);
@@ -152,23 +110,31 @@ void MJDSkim::SearchDelayedEvent(Double_t fEnr1, Double_t fEnr2, Double_t fTime,
   //////////////////////////////////////
   //cout << fTime << endl;
   ofstream fout(Form("%s",fOutputFile.c_str()));
-  fout << fixed << setprecision(3);
+  fout << fixed << setprecision(5);
 
   vector<Int_t> Run1;
   vector<Int_t> List1;
   vector<Int_t> Chan1;
   vector<Double_t> Enr1;
+  vector<Double_t> DCR1;
+  vector<Double_t> Time1;
   for(size_t i=0;i<fEntries;i++){
     fSkimTree->GetEntry(i);
     Int_t run1 = fRun;
     for(size_t j=0;j<fChannel->size();j++){	      
       Int_t chan1 = fChannel->at(j);
       Double_t enr1 = fTrapENFCal->at(j);
-      if(abs(enr1-fEnr1)<20 && chan1%2==0 && fIsGood->at(j) == 1){
+      Double_t dcr1 = fDCR->at(j);
+      Double_t time1 = fglobalTime->AsDouble()+ ftOffset->at(j)/1e9;
+      //cout << fglobalTime->AsDouble() << " "<< ftOffset->at(j) << endl;
+      if(abs(enr1-fEnr1)<20 && chan1%2==0 && fIsGood->at(j) == 1 ){
+      //if(abs(enr1-fEnr1)<20){
 	Run1.push_back(run1);
 	List1.push_back(i);
 	Chan1.push_back(chan1);
 	Enr1.push_back(enr1);
+	DCR1.push_back(dcr1);
+	Time1.push_back(time1);
       }
     }
   }
@@ -187,13 +153,16 @@ void MJDSkim::SearchDelayedEvent(Double_t fEnr1, Double_t fEnr2, Double_t fTime,
   vector<Int_t> Event3;
   vector<Double_t> Mu_s2;
   vector<Double_t> Mu_s3;
+  vector<Double_t> DCR2;
+  vector<Double_t> DCR3;
+
   cout.precision(15);
   if((Int_t)List1.size()>0){
     for(size_t i=0;i<List1.size();i++){
       fSkimTree->GetEntry(List1.at(i));
       Int_t run1 = Run1.at(i);
       //Double_t time1 = flocalTime_s;
-      Double_t time1 = flocalTime_s;
+      Double_t time1 = Time1.at(i);
       Double_t time2 = time1;
       Double_t dtmu_s1 = fdtmu_s->at(0);
 
@@ -201,23 +170,18 @@ void MJDSkim::SearchDelayedEvent(Double_t fEnr1, Double_t fEnr2, Double_t fTime,
       Int_t ii = List1.at(i)-1;
       fSkimTree->GetEntry(ii);
       Int_t run2 = fRun;
-      time2 = flocalTime_s;
+      time2 = fglobalTime->AsDouble();
       Int_t event2 = fEvent;
-      
-      while( (time1-time2)<fTime*20 && ii>0){
-	//	cout << ii << " "<< fTime*20 << " "<< time1-time2 << " " << time1 << " " << time2 << endl;
-	//fSkimTree->GetEntry(ii);
-	//Int_t run2 = fRun;
-	//time2 = fTimestamp->at(0);
-	//Int_t event2 = fEvent;
-	//cout << run1 << " " << event1 << " " << event2 << " " << ii << " "<< time1-time2 << " " << time1 << " " << time2 << endl;
-
+      Double_t dcr2 = DCR1.at(i);
+      while( (time1-time2)<fTime*20 && (time1-time2) >0 && ii>0){
 	for(size_t j=0;j<fChannel->size();j++){
 	  Int_t chan2 = fChannel->at(j);
 	  Double_t enr2 = fTrapENFCal->at(j);	    
 	  Double_t dtmu_s2 = fdtmu_s->at(j);
-	  Double_t dt = ftOffset->at(j);
-	  if(enr2<fEnr2 && enr2>5 && fIsGood->at(j)==1 && chan2%2==0){
+	  Double_t dt = ftOffset->at(j)/1e9;
+	  Double_t dcr3 = fDCR->at(j);
+	  cout << event1 << " " << time1 << " "<< event2 << " "<< time2 << " " << dt << " " << chan2 << endl;
+	  if(enr2<fEnr2 && enr2>5 && fIsGood->at(j)==1 && chan2%2==0 && (time1 - (time2+dt))>0){
 	    Run2.push_back(run1);
 	    List2.push_back(List1.at(i));
 	    Chan2.push_back(Chan1.at(i));
@@ -225,6 +189,7 @@ void MJDSkim::SearchDelayedEvent(Double_t fEnr1, Double_t fEnr2, Double_t fTime,
 	    Time2.push_back(time1);
 	    Event2.push_back(event1);
 	    Mu_s2.push_back(dtmu_s1);
+	    DCR2.push_back(dcr2);
 	    Run3.push_back(run2);
 	    List3.push_back(ii);
 	    Chan3.push_back(chan2);
@@ -232,22 +197,24 @@ void MJDSkim::SearchDelayedEvent(Double_t fEnr1, Double_t fEnr2, Double_t fTime,
 	    Time3.push_back(time2+dt);
             Event3.push_back(event2);
             Mu_s3.push_back(dtmu_s2);
+	    DCR3.push_back(dcr3);
 	    //cout << time1 << " " << time2 << " "<< time1-time2 << endl;
 	  }
 	}     
 	ii--;
 	fSkimTree->GetEntry(ii);
         run2 = fRun;
-        time2 = flocalTime_s;
+        time2 = fglobalTime->AsDouble();
         event2 = fEvent;
-
       }
     }
   }
 
   for(size_t i=0;i<List2.size();i++){
-    fout << Run2.at(i) << " " << List2.at(i) << " " << Event2.at(i) << " " << Chan2.at(i) << " " << Enr2.at(i) << " " << Time2.at(i) << " " << Mu_s2.at(i) << " "
-	 << Run3.at(i) << " " << List3.at(i) << " " << Event3.at(i) << " " << Chan3.at(i) << " " << Enr3.at(i) << " " << Time3.at(i) << " " << Mu_s3.at(i) << endl;
+    fout << Run2.at(i) << " " << List2.at(i) << " " << Event2.at(i) << " " << Chan2.at(i) << " " << Enr2.at(i) << " " << Time2.at(i) << " " << Mu_s2.at(i) << " " << DCR2.at(i) << " "
+	 << Run3.at(i) << " " << List3.at(i) << " " << Event3.at(i) << " " << Chan3.at(i) << " " << Enr3.at(i) << " " << Time3.at(i) << " " << Mu_s3.at(i) << " " << DCR3.at(i) << " " 
+	 << Time2.at(i) - Time3.at(i) << endl;
+
   }
 
 }
@@ -268,7 +235,7 @@ void MJDSkim::SearchMuonCoinEvent(Double_t fEnr, Double_t fTime, string fOutputF
       Int_t chan1 = fChannel->at(j);
       Double_t enr1 = fTrapENFCal->at(j);
       Double_t dtmu1 = fdtmu_s->at(j);
-      if(abs(enr1-fEnr)<5 && chan1%2==0 && fIsGood->at(j) == 1 && dtmu1<fTime*20){
+      if(abs(enr1-fEnr)<20 && chan1%2==0 && fIsGood->at(j) == 1 && dtmu1<fTime*20){
 	Run1.push_back(run1);
 	Event1.push_back(event1);
 	Chan1.push_back(chan1);
@@ -307,7 +274,10 @@ void MJDSkim::SearchEnergyEvent(Double_t fEnr, Double_t fEnrWindow, string fOutp
       Double_t dcr = fDCR->at(j);
       Double_t avse = fAvsE->at(j);
       //cout << irun << " " << ievent <<" " << ienr << endl;
-      if(abs(ienr-fEnr)< fEnrWindow && ichan%2==0 && isGood == 1){	
+      //if(abs(ienr-fEnr)< fEnrWindow && ichan%2==0 && isGood == 1 && dcr < 0.006 && dcr>0.004){	
+      //if(abs(ienr-fEnr)< fEnrWindow && ichan%2==0 &&  dcr>0.004 && dcr<0.006){
+      if(abs(ienr-fEnr)< fEnrWindow){
+
 	fout << irun << " " << i << " " <<  ievent << " " << pos.c_str() << " "<< ichan << " "
 	     << ienr << " "<< dcr << " "<< avse << endl;	    
       }      
@@ -778,150 +748,65 @@ void MJDSkim::PileUpTree(const char* pathName){
     Double_t count = 0;
     //cout << i << endl;
     fSkimTree->GetEntry(i);
-    /*
-    for(size_t j = 0;j<fChannel->size();j++){
-      if(fTrapENFCal->at(j)>40 && fTrapENFCal->at(j)<12000){
-      	count = count+1;
-	//cout << j << " "<< count << endl;
-      }
-    }
-    */
-
-    //TimeDiff->clear();
-    /*
-    vector<Double_t> tOff;
-    tOff.clear();
-    for(size_t j = 0;j<fChannel->size();j++){
-      tOff.push_back(ftOffset->at(j));
-      //TimeDiff->push_back(ftOffset->at(j));
-    }
-    vector<Int_t> tInd = MJDSkim::Sort(tOff);
-    vector<Double_t> tOffHG;
-    tOffHG.clear();
-    vector<Double_t> tOffLG;
-    tOffLG.clear();
-    vector<Int_t> tIndHG;
-    vector<Int_t> tIndLG;
-    tIndHG.clear();
-    tIndLG.clear();
-    for(size_t j=0;j<tInd.size();j++){
-      if(fChannel->at(j)%2==0){
-	tOffHG.push_back(tOff.at(tInd.at(j)));
-	tIndHG.push_back(tInd.at(j));
-      }else{
-	tOffLG.push_back(tOff.at(tInd.at(j)));
-	tIndLG.push_back(tInd.at(j));
-      }
-    }
-
-    vector<Double_t> tDiffHG;
-    vector<Double_t> tDiffLG;
-    tDiffHG.clear();
-    tDiffLG.clear();
-    if(tOffHG.size()>0){
-      Double_t t0 = tOffHG.at(0);
-      for(size_t j=0;j<tOffHG.size();j++){
-	Double_t t1 = tOffHG.at(j);
-	tDiffHG.push_back(t1-t0);
-	t0 = t1;
-      }
-      for(size_t j=0;j<tIndHG.size();j++){
-	TimeDiff->at(tIndHG.at(j)) = tDiffHG.at(j);
-      }
-    }
-    if(tOffLG.size()>0){
-      Double_t t0 = tOffLG.at(0);
-      for(size_t j=0;j<tOffLG.size();j++){
-	Double_t t1 = tOffLG.at(j);
-	tDiffLG.push_back(t1-t0);
-	t0 = t1;
-      }
-      for(size_t j=0;j<tIndLG.size();j++){
-	TimeDiff->at(tIndLG.at(j)) = tDiffLG.at(j);
-      }
-    }
-*/
-    //cout << count << endl;
-    //if(count>0){
-
-      IsPileUp1.clear();
-      PileUpRatio1.clear();
-      PileUpDeltaT1.clear();
-      AE1.clear();
-      A1.clear();
-      IsPileUp->clear();
-      PileUpRatio->clear();
-      PileUpDeltaT->clear();
-      AE->clear();
-      A->clear();
-      //cout << i << " " << endl;
-      MJDSkim::IsPileUpTag(i,&IsPileUp1,&PileUpRatio1,&PileUpDeltaT1,&AE1,&A1);
-      //cout << IsPileUp1.size() << " " << fChannel->size() << endl;
-      //cout << fRun << " " << fEvent<<  " " << i << " " << IsPileUp->at(0) << " "<<  fChannel->at(0) << " "<< fTrapENFCal->at(0) << endl;
-      //    }else{
-      //cout << fRun << " " << fEvent<<  " " << i << " " << IsPileUp->at(0) << " "<<  fChannel->at(0) << " "<< fTrapENFCal->at(0) << endl;
-      /*
-      for(size_t j = 0;j<fChannel->size();j++){	
-	IsPileUp->push_back(0);
-	PileUpRatio->push_back(0);
-	PileUpDeltaT->push_back(0);
-	AE->push_back(0);
-	A->push_back(0);
-      }      
-      */
-      //cout << IsPileUp->size() << " " << fChannel->size() << endl;
-      //    }
+    IsPileUp1.clear();
+    PileUpRatio1.clear();
+    PileUpDeltaT1.clear();
+    AE1.clear();
+    A1.clear();
+    IsPileUp->clear();
+    PileUpRatio->clear();
+    PileUpDeltaT->clear();
+    AE->clear();
+    A->clear();
     
-      Channel->clear();
-      Energy->clear();
-      P->clear();
-      D->clear();
-      C->clear();
-      IsEnr->clear();
-      IsNat->clear();
-      IsGood->clear();
-      TOffset->clear();
-      Dtmu_s->clear();
-      DCR->clear();
-      AvsE->clear();
-      //    if(count>0){
-      Run = fRun;
-      Event = fEvent;
-      LocalTime = flocalTime_s;
-      GlobalTime = fglobalTime->AsDouble();
-      mHClean = fmH;
-      MuVeto = fmuVeto;
-      MuTUnc = fmuTUnc;
-
-      //cout << IsPileUp1.size() << " "<< fChannel->size() << endl;
-      for(size_t j = 0;j<fChannel->size();j++){
-	if(IsPileUp1.at(j)>0){
-
-	  IsPileUp->push_back(IsPileUp1.at(j));
-	  PileUpRatio->push_back(PileUpRatio1.at(j));
-	  PileUpDeltaT->push_back(PileUpDeltaT1.at(j));
-	  AE->push_back(AE1.at(j));
-	  A->push_back(A1.at(j));
-
-	  Channel->push_back(fChannel->at(j));
-	  Energy->push_back(fTrapENFCal->at(j));
-	  P->push_back(fP->at(j));
-	  D->push_back(fD->at(j));
-	  C->push_back(fC->at(j));
-	  IsEnr->push_back(fIsEnr->at(j));
-	  IsNat->push_back(fIsNat->at(j));
-	  IsGood->push_back(fIsGood->at(j));
-	  TOffset->push_back(ftOffset->at(j));
-	  Dtmu_s->push_back(fdtmu_s->at(j));	       
-	  DCR->push_back(fDCR->at(j));
-	  AvsE->push_back(fAvsE->at(j));
-	  ToverE->push_back(fkvorrT->at(j));
-	}
+    MJDSkim::IsPileUpTag(i,&IsPileUp1,&PileUpRatio1,&PileUpDeltaT1,&AE1,&A1);
+    
+    Channel->clear();
+    Energy->clear();
+    P->clear();
+    D->clear();
+    C->clear();
+    IsEnr->clear();
+    IsNat->clear();
+    IsGood->clear();
+    TOffset->clear();
+    Dtmu_s->clear();
+    DCR->clear();
+    AvsE->clear();
+    
+    Run = fRun;
+    Event = fEvent;
+    LocalTime = flocalTime_s;
+    GlobalTime = fglobalTime->AsDouble();
+    mHClean = fmH;
+    MuVeto = fmuVeto;
+    MuTUnc = fmuTUnc;
+    
+    //cout << IsPileUp1.size() << " "<< fChannel->size() << endl;
+    for(size_t j = 0;j<fChannel->size();j++){
+      if(IsPileUp1.at(j)>0){
+	
+	IsPileUp->push_back(IsPileUp1.at(j));
+	PileUpRatio->push_back(PileUpRatio1.at(j));
+	PileUpDeltaT->push_back(PileUpDeltaT1.at(j));
+	AE->push_back(AE1.at(j));
+	A->push_back(A1.at(j));
+	
+	Channel->push_back(fChannel->at(j));
+	Energy->push_back(fTrapENFCal->at(j));
+	P->push_back(fP->at(j));
+	D->push_back(fD->at(j));
+	C->push_back(fC->at(j));
+	IsEnr->push_back(fIsEnr->at(j));
+	IsNat->push_back(fIsNat->at(j));
+	IsGood->push_back(fIsGood->at(j));
+	TOffset->push_back(ftOffset->at(j)/1e9);
+	Dtmu_s->push_back(fdtmu_s->at(j));	       
+	DCR->push_back(fDCR->at(j));
+	AvsE->push_back(fAvsE->at(j));
       }
-      newtree->Fill();      
-	  //	}
-	  //}
-      //}
+    }
+    newtree->Fill();      
   }
   newtree->Write();
   cout << "Pile-up file is generated...." <<endl;
@@ -950,7 +835,7 @@ void MJDSkim::TimeDiffTree(const char* pathName){
 	tOff.clear();
 	for(size_t j = 0;j<fChannel->size();j++){
 	  if(fChannel->at(j)%2==0){
-	    tOff.push_back(ftOffset->at(j));
+	    tOff.push_back(ftOffset->at(j)/1e9);
 	  }
 	}
 	vector<Int_t> tInd = MJDSkim::Sort(tOff);	
@@ -972,4 +857,13 @@ void MJDSkim::TimeDiffTree(const char* pathName){
   newtree->Write();
   cout << "TimeDiff file is generated...." <<endl;
   delete newfile;
+}
+
+TH1D* MJDSkim::FillHisto(TChain* mTree, string InputParaName, string OutputParaName,string CutName, Int_t Bin, Double_t Low, Double_t Up){
+  TH1D *h = new TH1D(Form("%s", OutputParaName.c_str()),"", Bin, Low, Up);
+  TCut cut1 = Form("%s",CutName.c_str());
+  //TCanvas *c1 = new TCanvas("c1");
+  mTree->Draw(Form("%s>>%s",InputParaName.c_str(),OutputParaName.c_str()),cut1);
+  return h;
+  cout << "histogram is generated" << endl;
 }

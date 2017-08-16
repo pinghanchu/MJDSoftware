@@ -30,7 +30,6 @@ public:
   MJDSkim(Int_t DataSet = 1, Int_t SubSet = 0, Int_t IsCal = 0);
   virtual ~MJDSkim() {}
   virtual inline TChain* GetSkimTree(){ return fSkimTree; }
-
   virtual void SearchDelayedEvent(Double_t fEnr1, Double_t fEnr2, Double_t fTime, string fOutputFile);
   virtual void SearchMuonCoinEvent(Double_t fEnr, Double_t fTime, string fOutputFile);
   virtual void SearchEnergyEvent(Double_t fEnr1, Double_t fEnrWindow, string fOutputFile);
@@ -46,11 +45,10 @@ public:
   virtual vector<Int_t> Clean(vector<Double_t> X); 
   virtual void IsPileUpTag(Int_t fList, vector<Int_t>* IsPileUp, vector<Double_t>* Ratio, 
 			   vector<Double_t>* DeltaT, vector<Double_t>* AE,vector<Double_t>* Cur);
-
   virtual void PileUpTree(const char* pathName);
- 
   virtual void TimeDiffTree(const char* pathName);
- 
+  virtual TH1D* FillHisto(TChain* mTree, string InputParaName, string OutputParaName,string CutName, Int_t Bin, Double_t Low, Double_t Up);
+
 protected:
   Int_t fDataSet;
   Int_t fSubSet;
@@ -72,7 +70,6 @@ protected:
   vector<Double_t>* ftOffset;
   vector<Double_t>* fDCR;
   vector<Double_t>* fAvsE;
-  vector<Double_t>* fkvorrT;
   Double_t flocalTime_s;
   Double_t fclockTime_s;
   TTimeStamp* fglobalTime;

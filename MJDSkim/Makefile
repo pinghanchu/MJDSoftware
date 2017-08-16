@@ -2,7 +2,7 @@ include $(MGDODIR)/buildTools/config.mk
 
 # Give the list of applications, which must be the stems of cc files with 'main'.  There
 # can be more than one.  In our example, this means there is a test.cc and a test1.cc
-APPS = searchpileupwf plotdeltaT search73Ga search73Ga_two search77Ge search77mGe countgranularity pileuptag plotpileup timedifftag printwaveform searchenergy
+APPS = searchpileupwf plotdeltaT search73Ga search73Ga_two search77Ge search77mGe countgranularity pileuptag plotpileup timedifftag printwaveform searchenergy fillhist
 # The next two lines are important 
 SHLIB = 
 ARCHIVE = 
