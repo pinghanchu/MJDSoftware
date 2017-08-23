@@ -22,7 +22,7 @@ int main(int argc, char** argv)
   Double_t fEnergy = atof(argv[4]);
   Double_t fWindow = atof(argv[5]);
 
-  MJDSkim ds(fDataSet,fSubSet,fIsCal);
+  MJDSkim ds(fDataSet,fSubSet,fSubSet,fIsCal);
   string fOutputFile = Form("data_%d_%d.txt",fDataSet,fSubSet);
   ds.SearchEnergyEvent(fEnergy,fWindow,fOutputFile);
   cout << "The scan is done!" << endl;

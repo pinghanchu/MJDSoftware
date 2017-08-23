@@ -27,9 +27,15 @@ using namespace std;
 class MJDSkim : public TObject  
 {
 public:   
-  MJDSkim(Int_t DataSet = 1, Int_t SubSet = 0, Int_t IsCal = 0);
+  MJDSkim(Int_t DataSet = 1, Int_t SubSet = 0, Int_t SubSet2=0, Int_t IsCal = 0);
   virtual ~MJDSkim() {}
   virtual inline TChain* GetSkimTree(){ return fSkimTree; }
+  virtual void SetChannel();
+  virtual inline vector<Int_t> GetChannel(){return fMTChannel;};
+  virtual inline vector<Int_t> GetCryo(){ return fCryo;}
+  virtual inline vector<Int_t> GetString(){ return fString; }
+  virtual inline vector<Int_t> GetDetPosition(){ return fDetector; }
+  virtual inline vector<string> GetDetectorName(){ return fDetectorName;}
   virtual void SearchDelayedEvent(Double_t fEnr1, Double_t fEnr2, Double_t fTime, string fOutputFile);
   virtual void SearchMuonCoinEvent(Double_t fEnr, Double_t fTime, string fOutputFile);
   virtual void SearchEnergyEvent(Double_t fEnr1, Double_t fEnrWindow, string fOutputFile);
@@ -52,12 +58,19 @@ public:
 protected:
   Int_t fDataSet;
   Int_t fSubSet;
+  Int_t fSubSet2;
   Int_t fIsCal;
   TChain* fSkimTree;
   size_t fEntries;
   Int_t fRun;
   Int_t fEvent;
-  
+  Int_t fStartRun;
+  MJTChannelMap* fMap;
+  vector<Int_t> fMTChannel;
+  vector<Int_t> fCryo;
+  vector<Int_t> fString;
+  vector<Int_t> fDetector;
+  vector<string> fDetectorName;
   vector<Int_t>* fChannel;  
   vector<Int_t>* fP;
   vector<Int_t>* fD;
@@ -70,6 +83,7 @@ protected:
   vector<Double_t>* ftOffset;
   vector<Double_t>* fDCR;
   vector<Double_t>* fAvsE;
+  vector<Double_t>* fTrapETailMin;
   Double_t flocalTime_s;
   Double_t fclockTime_s;
   TTimeStamp* fglobalTime;

@@ -66,10 +66,18 @@ Double_t SkewGausSlope(Double_t *v, Double_t *par){
   return SkewGaus(v,par)+Slope(v,&par[4]);
 }
 
-
-void Fit()
-{
-
+//void Fit(int argc, char** argv)
+//{
+/*
+  if(argc != 2 || atoi(argv[1]) == 0) {
+    cout << "Usage: " << argv[0] << " [par]" << endl;
+    return 1;
+  }
+  Int_t par = atoi(argv[1]);
+  cout << par << endl;
+*/
+void Fit(int par){
+  cout << par << endl;
   gROOT->SetStyle("Plain");
   gStyle->SetOptFit(1111);
 

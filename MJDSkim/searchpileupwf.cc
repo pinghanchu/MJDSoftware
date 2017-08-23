@@ -19,7 +19,7 @@ int main(int argc, char** argv)
   Double_t fEnergy = atof(argv[2]);
   Double_t fWindow = atof(argv[3]);
 
-  MJDSkim ds(fDataSet);
+  MJDSkim ds(fDataSet,0,0,0);
   //ds.SetEnergyName(fEnergyName);
   //Double_t fEnr = fEnergy;
   //Double_t fTime = 0.5;

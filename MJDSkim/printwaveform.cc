@@ -21,7 +21,7 @@ int main(int argc, char** argv)
   Int_t fChan = atoi(argv[3]);
   Double_t fEnr = atof(argv[4]);
   TCanvas *c1 = new TCanvas("c1");
-  MJDSkim ds(0,0,0);
+  MJDSkim ds(0,0,0,0);
   TH1D* h = ds.GetWaveform(fRun,fEntry,fChan,fEnr);
   TH1D* h2 = ds.GetHistoDerivative(h,10);
   TH1D* h4 = ds.GetHistoDerivative(h2,10);

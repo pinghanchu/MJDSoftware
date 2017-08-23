@@ -51,11 +51,61 @@ int main(int argc, char** argv)
       }
     }
   }
+  /*
+  c1->SetLogy();
+  TH1D *t1 = new TH1D("t1","",1000,-10,10);
+  fSkimTree->Draw("trapETailMin>>t1");
+  t1->SetTitle(";trapETailMin;");
+  t1->Draw();
+  c1->Print("trapETailMin.pdf");
 
+  TH1D *t2 = new TH1D("t2","",600,-0.3,0.3);
+  fSkimTree->Draw("trapETailMin/trapENFCal>>t2");
+  t2->SetTitle(";trapETailMin/Energy;");
+  t2->Draw();
+  c1->Print("trapETailMin_Enr.pdf");
+
+  TH1D *t21 = new TH1D("t21","",600,-0.3,0.3);
+  fSkimTree->Draw("trapETailMin/trapENFCal>>t21","trapENFCal>48 && trapENFCal<72");
+  t21->SetTitle(";trapETailMin/Energy;");
+  t21->Draw();
+  c1->Print("trapETailMin_Enr_Zoom_In_1.pdf");
+
+  TH1D *t22 = new TH1D("t22","",600,-0.3,0.3);
+  fSkimTree->Draw("trapETailMin/trapENFCal>>t22","trapENFCal>200 && trapENFCal<500");
+  t22->SetTitle(";trapETailMin/Energy;");
+  t22->Draw();
+  c1->Print("trapETailMin_Enr_Zoom_In_2.pdf");
+  */
+  c1->SetLogy(0);
+  
+  
+  c1->SetLogz();
+  /*
+  TH2D *t3 = new TH2D("t3","",300,0,3000,1200,-2,10);
+  fSkimTree->Draw("trapETailMin:trapENFCal>>t3");
+  t3->SetTitle(";Energy(keV);trapETailMin");
+  t3->Draw();
+  c1->Print("Energy_trapETailMin.pdf");
+  TH2D *t31 = new TH2D("t31","",200,180,200,400,0,4);
+  fSkimTree->Draw("trapETailMin:trapENFCal>>t31");
+  t31->SetTitle(";Energy(keV);trapETailMin");
+  t31->Draw();
+  c1->Print("Energy_trapETailMin_Zoom_In.pdf");
+  */
+  /*
+  TH2D *t4 = new TH2D("t4","",300,0,3000,600,-0.3,0.3);
+  fSkimTree->Draw("trapETailMin/trapENFCal:trapENFCal>>t4");
+  t4->SetTitle(";Energy(keV);trapETailMin/Enr");
+  t4->Draw();
+  c1->Print("Energy_trapETailMin_Enr.pdf");
+  */
+  /*
   TH1D *h1 = new TH1D("h1","",30000,0,30000);
   fSkimTree->Draw("run>>h1","dcr99<0.006 && dcr99>0.004 && trapENFCal< 60 && trapENFCal>40");
   h1->Draw();
   c1->Print("h1.pdf");
+  */
   /*
   //////AvsE
   c1->SetLogy();
@@ -74,9 +124,18 @@ int main(int argc, char** argv)
   a2->Draw("COLZ");
   c1->Print("Energy_AvsE.pdf");
   c1->Update();
-
+  */
+  /*
+  TH2D *a3 = new TH2D("a3","AvsE vs Enr",1000,0,100,3500,-500,3000);
+  fSkimTree->Draw("avse:trapENFCal>>a3");
+  a3->SetTitle(";Energy(keV);AvsE");
+  a3->Draw("COLZ");
+  c1->Print("Energy_AvsE_Zoom_In.pdf");
+  c1->Update();
+  */
+  /*
   c1->SetLogz();
-
+  
   TH2D *ad1 = new TH2D("ad1","DCR vs AvsE",5000,-2000,3000,400,-0.2,0.2);
   fSkimTree->Draw("dcr99:avse>>ad1");
   ad1->SetTitle(";AvsE;DCR");
@@ -92,8 +151,17 @@ int main(int argc, char** argv)
   ad2->Draw("COLZ");
   c1->Print("AvsE_DCR_Zoom_In.pdf");
   c1->Update();
+  */
+  TH2D *ad2 = new TH2D("ad2","DCR vs AvsE",4500,500,5000,600,-0.001,0.005);
+  //fSkimTree->Draw("dcr99:avse>>ad2","trapENFCal>48 && trapENFCal<72");
+  fSkimTree->Draw("dcr99:avse>>ad2");
+  ad2->SetTitle(";AvsE;DCR");
+  ad2->Draw("COLZ");
+  c1->Print("AvsE_DCR_High.pdf");
 
 
+
+  /*
   ////DCR
   c1->SetLogz();
   //TH2D *d2 = new TH2D("d2","DCR vs Enr",240,48,72,300,-0.01,0.02);
@@ -198,7 +266,7 @@ int main(int argc, char** argv)
       if(abs(fEnr->at(j)-67)<20 && AE>0.004 && Ratio>3 && Ratio<5 && DeltaT>0 && abs(DCR)<0.001){
 	fout << fRun << " " << fEvent << " " << fChannel->at(j) << " "<< fEnr->at(j) << " "
 	     << Ratio << " " << DeltaT << " " << DeltaT1 << " " << AE << " " << DCR << endl;
-	MJDSkim ds(fDataSet,fStartSubSet,0);
+	MJDSkim ds(fDataSet,fStartSubSet,fStartSubSet,0);
 	TH1D* h = ds.GetWaveform(fRun,fEvent,fChannel->at(j),fEnr->at(j));
         TH1D* h2 = ds.GetHistoDerivative(h,10);
         h->Draw();

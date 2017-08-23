@@ -20,7 +20,7 @@ int main(int argc, char** argv)
   Int_t fSubSet = atoi(argv[2]);
   Int_t fIsCal = atoi(argv[3]);
   const char* fPileUpPath = "";
-  MJDSkim ds(fDataSet,fSubSet,fIsCal);
+  MJDSkim ds(fDataSet,fSubSet,fSubSet,fIsCal);
   ds.TimeDiffTree(fPileUpPath);
 
   return 1;

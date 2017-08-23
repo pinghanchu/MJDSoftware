@@ -45,20 +45,29 @@ using namespace MJDB;
 ////////////////////////////////////////////////////////
 
 //Set ChannelMap, mjdTree (from GATDataSet), CalibrationPeak, Initial Parameters
-MJDSkim::MJDSkim(Int_t DataSet, Int_t SubSet, Int_t IsCal) 
+MJDSkim::MJDSkim(Int_t DataSet, Int_t SubSet1, Int_t SubSet2, Int_t IsCal) 
 {
   fDataSet = DataSet;
-  fSubSet = SubSet;
+  fSubSet = SubSet1;
+  fSubSet2 = SubSet2;
   fSkimTree = new TChain("skimTree");
   fIsCal = IsCal;
   string path = "GAT-v01-06-125-gd9332b6";
-
-  if(IsCal == 0){
-    fSkimTree->Add(Form("$MJDDATADIR/surfmjd/analysis/skim/DS%d/%s/skimDS%d_%d.root",fDataSet,path.c_str(),fDataSet,fSubSet));
+  if(fSubSet == fSubSet2){
+    if(IsCal == 0){
+      fSkimTree->Add(Form("$MJDDATADIR/surfmjd/analysis/skim/DS%d/%s/skimDS%d_%d.root",fDataSet,path.c_str(),fDataSet,fSubSet));
+    }else{
+      fSkimTree->Add(Form("$MJDDATADIR/surfmjd/analysis/skim/DS%dcal/%s/skimDS%d_run%d_small.root",fDataSet,path.c_str(),fDataSet,fSubSet));
+    }
   }else{
-    fSkimTree->Add(Form("$MJDDATADIR/surfmjd/analysis/skim/DS%dcal/%s/skimDS%d_run%d_small.root",fDataSet,path.c_str(),fDataSet,fSubSet));
+    for(Int_t is = SubSet1;is<=SubSet2;is++){
+      if(IsCal == 0){
+	fSkimTree->Add(Form("$MJDDATADIR/surfmjd/analysis/skim/DS%d/%s/skimDS%d_%d.root",fDataSet,path.c_str(),fDataSet,is));
+      }else{
+	fSkimTree->Add(Form("$MJDDATADIR/surfmjd/analysis/skim/DS%dcal/%s/skimDS%d_run%d_small.root",fDataSet,path.c_str(),fDataSet,is));
+      }
+    }
   }
-
   fSkimTree->SetBranchStatus("*",1);
   
   fChannel = NULL;
@@ -73,6 +82,7 @@ MJDSkim::MJDSkim(Int_t DataSet, Int_t SubSet, Int_t IsCal)
   ftOffset = NULL;
   fDCR = NULL;
   fAvsE = NULL;
+  fTrapETailMin = NULL;
   fnX = NULL;
   fdtmu_s = NULL;
   fglobalTime = NULL;
@@ -93,6 +103,7 @@ MJDSkim::MJDSkim(Int_t DataSet, Int_t SubSet, Int_t IsCal)
   fSkimTree->SetBranchAddress("tOffset",&ftOffset);
   fSkimTree->SetBranchAddress("dcr99",&fDCR);
   fSkimTree->SetBranchAddress("avse",&fAvsE);
+  fSkimTree->SetBranchAddress("trapETailMin",&fTrapETailMin);
   fSkimTree->SetBranchAddress("mHClean",&fmH);
   fSkimTree->SetBranchAddress("nX",&fnX);
   fSkimTree->SetBranchAddress("muVeto",&fmuVeto);
@@ -100,8 +111,194 @@ MJDSkim::MJDSkim(Int_t DataSet, Int_t SubSet, Int_t IsCal)
   fSkimTree->SetBranchAddress("muTUnc",&fmuTUnc);
   fSkimTree->GetEntry(0);
   fEntries = fSkimTree->GetEntries();
-
+  fStartRun = fRun;
+  GATDataSet *fDS = new GATDataSet(fStartRun);
+  if((fStartRun>0 && fStartRun<30000000) || (fStartRun > 60000000 && fStartRun<65000000)){
+    fMap = fDS->GetChannelMap();
+  }
+  SetChannel();
 }
+
+
+void MJDSkim::SetChannel()
+{
+  cout << fStartRun << endl;
+  fMTChannel.clear();
+  fCryo.clear();
+  fString.clear();
+  fDetector.clear();
+  fDetectorName.clear();
+  
+  //DS0-DS3 (Mod1)
+  if(fStartRun>=0 && fStartRun <18623){
+    for(Int_t i =1;i<2;i++){
+      for(Int_t j = 1;j<=7;j++){
+	if(j==4){
+	  for(Int_t k = 1;k<=5;k++){
+	    fCryo.push_back(i);
+	    fCryo.push_back(i);
+	    fString.push_back(j);
+	    fString.push_back(j);
+	    fDetector.push_back(k);
+	    fDetector.push_back(k);
+	    fMTChannel.push_back(fMap->GetIDHi(i,j,k));
+	    fMTChannel.push_back(fMap->GetIDLo(i,j,k));
+	    fDetectorName.push_back(fMap->GetDetectorName(i,j,k));
+            fDetectorName.push_back(fMap->GetDetectorName(i,j,k));
+	  }
+	}else{
+	  for(Int_t k = 1;k<=4;k++){
+	    fCryo.push_back(i);
+	    fCryo.push_back(i);
+	    fString.push_back(j);
+	    fString.push_back(j);
+	    fDetector.push_back(k);
+	    fDetector.push_back(k);
+	    fMTChannel.push_back(fMap->GetIDHi(i,j,k));
+	    fMTChannel.push_back(fMap->GetIDLo(i,j,k));
+            fDetectorName.push_back(fMap->GetDetectorName(i,j,k));
+            fDetectorName.push_back(fMap->GetDetectorName(i,j,k));
+	  }
+	}
+      }      
+    }
+  }
+
+  //DS4 (Mod2)
+  if(fStartRun>=60000001 && fStartRun <70000000){
+    for(Int_t i =2;i<3;i++){
+      for(Int_t j = 1;j<=7;j++){
+        if(j==2 || j==4){
+          for(Int_t k = 1;k<=5;k++){
+	    fCryo.push_back(i);
+	    fCryo.push_back(i);
+            fString.push_back(j);
+            fString.push_back(j);
+            fDetector.push_back(k);
+            fDetector.push_back(k);
+            fMTChannel.push_back(fMap->GetIDHi(i,j,k));
+            fMTChannel.push_back(fMap->GetIDLo(i,j,k));
+	    fDetectorName.push_back(fMap->GetDetectorName(i,j,k));
+            fDetectorName.push_back(fMap->GetDetectorName(i,j,k));
+
+          }
+        }else if(j==3){
+          for(Int_t k = 1;k<=3;k++){
+	    fCryo.push_back(i);
+	    fCryo.push_back(i);
+            fString.push_back(j);
+            fString.push_back(j);
+            fDetector.push_back(k);
+            fDetector.push_back(k);
+            fMTChannel.push_back(fMap->GetIDHi(i,j,k));
+            fMTChannel.push_back(fMap->GetIDLo(i,j,k));
+	    fDetectorName.push_back(fMap->GetDetectorName(i,j,k));
+            fDetectorName.push_back(fMap->GetDetectorName(i,j,k));
+
+          }
+	}else{
+          for(Int_t k = 1;k<=4;k++){
+	    fCryo.push_back(i);
+	    fCryo.push_back(i);
+            fString.push_back(j);
+            fString.push_back(j);
+            fDetector.push_back(k);
+            fDetector.push_back(k);
+            fMTChannel.push_back(fMap->GetIDHi(i,j,k));
+            fMTChannel.push_back(fMap->GetIDLo(i,j,k));
+	    fDetectorName.push_back(fMap->GetDetectorName(i,j,k));
+            fDetectorName.push_back(fMap->GetDetectorName(i,j,k));
+
+          }
+        }
+      }
+    }
+  }
+
+  //DS5- (Mod1+Mod2)
+  if(fStartRun>=18623 && fStartRun <30000000){
+    for(Int_t i =1;i<3;i++){
+      //Mod1
+      if(i==1){
+	for(Int_t j = 1;j<=7;j++){
+	  if(j==4){
+	    for(Int_t k = 1;k<=5;k++){
+	      fCryo.push_back(i);
+	      fCryo.push_back(i);
+	      fString.push_back(j);
+	      fString.push_back(j);
+	      fDetector.push_back(k);
+	      fDetector.push_back(k);
+	      fMTChannel.push_back(fMap->GetIDHi(i,j,k));
+	      fMTChannel.push_back(fMap->GetIDLo(i,j,k));
+	      fDetectorName.push_back(fMap->GetDetectorName(i,j,k));
+	      fDetectorName.push_back(fMap->GetDetectorName(i,j,k));
+	    }
+	  }else{
+	    for(Int_t k = 1;k<=4;k++){
+	      fCryo.push_back(i);
+	      fCryo.push_back(i);
+	      fString.push_back(j);
+	      fString.push_back(j);
+	      fDetector.push_back(k);
+	      fDetector.push_back(k);
+	      fMTChannel.push_back(fMap->GetIDHi(i,j,k));
+	      fMTChannel.push_back(fMap->GetIDLo(i,j,k));
+	      fDetectorName.push_back(fMap->GetDetectorName(i,j,k));
+	      fDetectorName.push_back(fMap->GetDetectorName(i,j,k));
+	    }
+	  }
+	}      
+      }
+      //Mod2
+      if(i==2){
+	for(Int_t j = 1;j<=7;j++){
+	  if(j==2 || j==4){
+	    for(Int_t k = 1;k<=5;k++){
+	      fCryo.push_back(i);
+	      fCryo.push_back(i);
+	      fString.push_back(j);
+	      fString.push_back(j);
+	      fDetector.push_back(k);
+	      fDetector.push_back(k);
+	      fMTChannel.push_back(fMap->GetIDHi(i,j,k));
+	      fMTChannel.push_back(fMap->GetIDLo(i,j,k));
+	      fDetectorName.push_back(fMap->GetDetectorName(i,j,k));
+	      fDetectorName.push_back(fMap->GetDetectorName(i,j,k));	      
+	    }
+	  }else if(j==3){
+	    for(Int_t k = 1;k<=3;k++){
+	      fCryo.push_back(i);
+	      fCryo.push_back(i);
+	      fString.push_back(j);
+	      fString.push_back(j);
+	      fDetector.push_back(k);
+	      fDetector.push_back(k);
+	      fMTChannel.push_back(fMap->GetIDHi(i,j,k));
+	      fMTChannel.push_back(fMap->GetIDLo(i,j,k));
+	      fDetectorName.push_back(fMap->GetDetectorName(i,j,k));
+	      fDetectorName.push_back(fMap->GetDetectorName(i,j,k));	      
+	    }
+	  }else{
+	    for(Int_t k = 1;k<=4;k++){
+	      fCryo.push_back(i);
+	      fCryo.push_back(i);
+	      fString.push_back(j);
+	      fString.push_back(j);
+	      fDetector.push_back(k);
+	      fDetector.push_back(k);
+	      fMTChannel.push_back(fMap->GetIDHi(i,j,k));
+	      fMTChannel.push_back(fMap->GetIDLo(i,j,k));
+	      fDetectorName.push_back(fMap->GetDetectorName(i,j,k));
+	      fDetectorName.push_back(fMap->GetDetectorName(i,j,k));	      
+	    }
+	  }
+	}
+      }
+    }
+  }
+}
+
 
 void MJDSkim::SearchDelayedEvent(Double_t fEnr1, Double_t fEnr2, Double_t fTime, string fOutputFile){
   //////////////////////////////////////
@@ -117,6 +314,8 @@ void MJDSkim::SearchDelayedEvent(Double_t fEnr1, Double_t fEnr2, Double_t fTime,
   vector<Int_t> Chan1;
   vector<Double_t> Enr1;
   vector<Double_t> DCR1;
+  vector<Double_t> AvsE1;
+  vector<Double_t> TrapETailMin1;
   vector<Double_t> Time1;
   for(size_t i=0;i<fEntries;i++){
     fSkimTree->GetEntry(i);
@@ -125,15 +324,24 @@ void MJDSkim::SearchDelayedEvent(Double_t fEnr1, Double_t fEnr2, Double_t fTime,
       Int_t chan1 = fChannel->at(j);
       Double_t enr1 = fTrapENFCal->at(j);
       Double_t dcr1 = fDCR->at(j);
+      Double_t avse1 = fAvsE->at(j);
+      Double_t trapetailmin = fTrapETailMin->at(j);
       Double_t time1 = fglobalTime->AsDouble()+ ftOffset->at(j)/1e9;
-      //cout << fglobalTime->AsDouble() << " "<< ftOffset->at(j) << endl;
-      if(abs(enr1-fEnr1)<20 && chan1%2==0 && fIsGood->at(j) == 1 ){
-      //if(abs(enr1-fEnr1)<20){
+      if( (abs(enr1-fEnr1)<20 && chan1%2==0) 
+	  && 
+	  !(0.015<dcr1 && dcr1<0.018 && 49<enr1 && enr1<51) && 
+	  !(0.004<dcr1 && dcr1<0.006 && 49<enr1 && enr1<52) &&
+	  !(-0.006<dcr1 && dcr1<-0.004 && 48<enr1 && enr1<58) &&
+	  !(avse1>500 && (chan1 == 691 || chan1 == 1124)) &&
+	  !(trapetailmin >2 && trapetailmin <3.5 && enr1>191 && enr1<192)
+	 ){ 
 	Run1.push_back(run1);
 	List1.push_back(i);
 	Chan1.push_back(chan1);
 	Enr1.push_back(enr1);
 	DCR1.push_back(dcr1);
+	AvsE1.push_back(avse1);
+	TrapETailMin1.push_back(trapetailmin);
 	Time1.push_back(time1);
       }
     }
@@ -155,7 +363,10 @@ void MJDSkim::SearchDelayedEvent(Double_t fEnr1, Double_t fEnr2, Double_t fTime,
   vector<Double_t> Mu_s3;
   vector<Double_t> DCR2;
   vector<Double_t> DCR3;
-
+  vector<Double_t> AvsE2;
+  vector<Double_t> AvsE3;
+  vector<Double_t> TrapETailMin2;
+  vector<Double_t> TrapETailMin3;
   cout.precision(15);
   if((Int_t)List1.size()>0){
     for(size_t i=0;i<List1.size();i++){
@@ -173,15 +384,27 @@ void MJDSkim::SearchDelayedEvent(Double_t fEnr1, Double_t fEnr2, Double_t fTime,
       time2 = fglobalTime->AsDouble();
       Int_t event2 = fEvent;
       Double_t dcr2 = DCR1.at(i);
-      while( (time1-time2)<fTime*20 && (time1-time2) >0 && ii>0){
+      Double_t avse2 = AvsE1.at(i);
+      Double_t trapetailmin2 = TrapETailMin1.at(i);
+      //cout<< run1 << " "<< event1 << " "<< Enr1.at(i) << endl;
+      while( (time1-time2)<fTime*20 && (time1-time2) >=0 && ii>0){
 	for(size_t j=0;j<fChannel->size();j++){
 	  Int_t chan2 = fChannel->at(j);
 	  Double_t enr2 = fTrapENFCal->at(j);	    
 	  Double_t dtmu_s2 = fdtmu_s->at(j);
 	  Double_t dt = ftOffset->at(j)/1e9;
 	  Double_t dcr3 = fDCR->at(j);
-	  cout << event1 << " " << time1 << " "<< event2 << " "<< time2 << " " << dt << " " << chan2 << endl;
-	  if(enr2<fEnr2 && enr2>5 && fIsGood->at(j)==1 && chan2%2==0 && (time1 - (time2+dt))>0){
+	  Double_t avse3 = fAvsE->at(j);
+	  Double_t trapetailmin3 = fTrapETailMin->at(j);
+	  //cout << run1 << " "<< event1 << " " << time1 << " "<< event2 << " "<< time2 << " " << dt << " " << chan2 << endl;
+	  if( (enr2<fEnr2 && enr2>5 && chan2%2==0 && (time1 - (time2+dt))>0) 
+	      &&
+	      !(0.015<dcr3 && dcr3<0.018 && 49<enr2 && enr2<51) &&
+	      !(0.004<dcr3 && dcr3<0.006 && 49<enr2 && enr2<52) &&
+	      !(-0.006<dcr3 && dcr3<-0.004 && 48<enr2 && enr2<58) &&
+	      !(avse3>500 && (chan2 == 691 || chan2 == 1124)) &&
+	      !(trapetailmin3 >2 && trapetailmin3 <3.5 && enr2>191 && enr2<192)
+	     ){
 	    Run2.push_back(run1);
 	    List2.push_back(List1.at(i));
 	    Chan2.push_back(Chan1.at(i));
@@ -190,6 +413,8 @@ void MJDSkim::SearchDelayedEvent(Double_t fEnr1, Double_t fEnr2, Double_t fTime,
 	    Event2.push_back(event1);
 	    Mu_s2.push_back(dtmu_s1);
 	    DCR2.push_back(dcr2);
+	    AvsE2.push_back(avse2);
+	    TrapETailMin2.push_back(trapetailmin2);
 	    Run3.push_back(run2);
 	    List3.push_back(ii);
 	    Chan3.push_back(chan2);
@@ -198,6 +423,8 @@ void MJDSkim::SearchDelayedEvent(Double_t fEnr1, Double_t fEnr2, Double_t fTime,
             Event3.push_back(event2);
             Mu_s3.push_back(dtmu_s2);
 	    DCR3.push_back(dcr3);
+	    AvsE3.push_back(avse3);
+	    TrapETailMin3.push_back(trapetailmin3);
 	    //cout << time1 << " " << time2 << " "<< time1-time2 << endl;
 	  }
 	}     
@@ -211,12 +438,15 @@ void MJDSkim::SearchDelayedEvent(Double_t fEnr1, Double_t fEnr2, Double_t fTime,
   }
 
   for(size_t i=0;i<List2.size();i++){
-    fout << Run2.at(i) << " " << List2.at(i) << " " << Event2.at(i) << " " << Chan2.at(i) << " " << Enr2.at(i) << " " << Time2.at(i) << " " << Mu_s2.at(i) << " " << DCR2.at(i) << " "
-	 << Run3.at(i) << " " << List3.at(i) << " " << Event3.at(i) << " " << Chan3.at(i) << " " << Enr3.at(i) << " " << Time3.at(i) << " " << Mu_s3.at(i) << " " << DCR3.at(i) << " " 
+    fout << Run2.at(i) << " " << List2.at(i) << " " << Event2.at(i) << " " << Chan2.at(i) << " " 
+	 << Enr2.at(i) << " " << Time2.at(i) << " " << Mu_s2.at(i) << " " << DCR2.at(i) << " "
+	 << AvsE2.at(i) << " "<< TrapETailMin2.at(i) << " " 
+	 << Run3.at(i) << " " << List3.at(i) << " " << Event3.at(i) << " " << Chan3.at(i) << " " 
+	 << Enr3.at(i) << " " << Time3.at(i) << " " << Mu_s3.at(i) << " " << DCR3.at(i) << " " 
+	 << AvsE3.at(i) << " "<< TrapETailMin3.at(i) << " "
 	 << Time2.at(i) - Time3.at(i) << endl;
 
   }
-
 }
 
 void MJDSkim::SearchMuonCoinEvent(Double_t fEnr, Double_t fTime, string fOutputFile){
@@ -284,7 +514,6 @@ void MJDSkim::SearchEnergyEvent(Double_t fEnr, Double_t fEnrWindow, string fOutp
     }
   }
   cout << "SearchEnergy file is generated...." <<endl;
-
 }
 
 
@@ -317,7 +546,7 @@ TH1D* MJDSkim::TrapezoidalFilter(TH1D* hist, double RampTime, double FlatTime , 
   Int_t entries = hist->GetEntries();
   vector<Double_t> anInput;
   for(Int_t i1 = 0;i1<entries;i1++){
-    cout << i1 << " "<< hist->GetBinContent(i1) << endl;
+    //cout << i1 << " "<< hist->GetBinContent(i1) << endl;
     anInput.push_back(hist->GetBinContent(i1));
   }
 
@@ -361,7 +590,7 @@ TH1D* MJDSkim::TrapezoidalFilter(TH1D* hist, double RampTime, double FlatTime , 
   anOutput.resize(anOutput.size()-(2*rampStep+flatStep));
   // Rescale event by normalization factor
   for(size_t i = 1; i < anOutput.size(); i++)anOutput[i] = anOutput[i]/norm;
-  cout << anOutput.size() << " "<< entries << endl;
+  //cout << anOutput.size() << " "<< entries << endl;
   for(size_t i2 = 0;i2<anOutput.size();i2++){
     h->SetBinContent(i2,anOutput.at(i2));
   }
