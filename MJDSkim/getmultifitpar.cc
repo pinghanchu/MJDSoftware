@@ -2,7 +2,7 @@
 // written by Pinghan Chu
 // Following the logic in GATAutoCal.cc
 // 
-#include "GATAutoCal.hh"
+#include "MJDSkim.hh"
 #include "TROOT.h"
 #include "TStyle.h"
 #include "TCanvas.h"
@@ -129,12 +129,13 @@ int main(int argc, char** argv)
   ofstream fout("gainjump.txt");
   ofstream fgain("gain.txt",ios::app);
   ///////////////////////////////////////////
-  GATAutoCal ds(startrun.at(0),startrun.at(0));
+  //GATAutoCal ds(startrun.at(0),startrun.at(0));
+  MJDSkim ds(fDataSet,0,0,1);
   vector<Int_t> fChannel = ds.GetChannel();
   vector<Int_t> fCryo = ds.GetCryo();
   vector<Int_t> fStr = ds.GetString();
   vector<Int_t> fDetpos= ds.GetDetPosition();
-  vector<Int_t> fGoodBad = ds.GetGoodBad();
+  //vector<Int_t> fGoodBad = ds.GetGoodBad();
   vector<Double_t> Par;
   vector<Double_t> ParErr;
   vector<Double_t> peak;
@@ -171,7 +172,7 @@ int main(int argc, char** argv)
     runerr.clear();
     runtemp.clear();
     runerrtemp.clear();
-    if(fGoodBad.at(i)>0){
+    //if(fGoodBad.at(i)>0){
       for(size_t j=0;j<startrun.size();j++){	
 	Par.clear();
 	ParErr.clear();
@@ -199,7 +200,7 @@ int main(int argc, char** argv)
 	  }
 	}
       }
-    }
+      //}
   }
   //cout << sigma.size() << endl;
   Double_t sum0 = 0;

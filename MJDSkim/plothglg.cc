@@ -1,4 +1,5 @@
 #include "MJDSkim.hh"
+#include "GATAutoCal.hh"
 #include "TStyle.h"
 #include "TFile.h"
 #include <fstream>
@@ -36,9 +37,10 @@ int main(int argc, char** argv)
   EndRun.pop_back();
 
 
-  GATAutoCal ps(StartRun.at(0),StartRun.at(0));
+  //GATAutoCal ps(StartRun.at(0),StartRun.at(0));
+  MJDSkim ps(fDataSet,0,0,1);
   vector<Int_t> channel = ps.GetChannel();
-  vector<Int_t> goodbad = ps.GetGoodBad();
+  //vector<Int_t> goodbad = ps.GetGoodBad();
   TChain *skimTree = new TChain("skimTree");
   string path = "GAT-v01-06-125-gd9332b6";
 
