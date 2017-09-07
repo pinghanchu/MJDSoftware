@@ -35,12 +35,26 @@ int main(int argc, char** argv)
   
   TH1D* h2 = ds.FillHisto(skimTree, Form("%s",fEName.c_str()),Form("%s00",fEName.c_str()),"channel%2== 0 && isGood==1 && isNat == 1",30000,0,3000);
   h2->Write();
+ 
+  TH1D* h1 = ds.FillHisto(skimTree, Form("%s",fEName.c_str()),Form("%s01",fEName.c_str()),"channel%2== 1 && isGood==1 && isNat == 1",30000,0,3000);
+  h1->Write();
 
   TH1D* h4 = ds.FillHisto(skimTree, Form("%s",fEName.c_str()),Form("%s10",fEName.c_str()),"channel%2== 0 && isGood==1 && isEnr == 1",30000,0,3000);
   h4->Write();
 
+
+  TH1D* h3 = ds.FillHisto(skimTree, Form("%s",fEName.c_str()),Form("%s11",fEName.c_str()),"channel%2== 1 && isGood==1 && isEnr == 1",30000,0,3000);
+  h3->Write();
+
+
+
   TH1D* h6 = ds.FillHisto(skimTree, Form("%s",fEName.c_str()),Form("%sHG",fEName.c_str()),"channel%2== 0 && isGood==1",30000,0,3000);
   h6->Write();
+
+  TH1D* h5 = ds.FillHisto(skimTree, Form("%s",fEName.c_str()),Form("%sLG",fEName.c_str()),"channel%2== 1 && isGood==1",30000,0,3000);
+  h5->Write();
+
+
 
   vector<Int_t> fChannel = ds.GetChannel();
   cout << fChannel.size() << endl;

@@ -52,7 +52,7 @@ MJDSkim::MJDSkim(Int_t DataSet, Int_t SubSet1, Int_t SubSet2, Int_t IsCal)
   fSubSet2 = SubSet2;
   fSkimTree = new TChain("skimTree");
   fIsCal = IsCal;
-  string path = "GAT-v01-06-125-gd9332b6";
+  string path = "GAT-v01-07";
   if(fSubSet == fSubSet2){
     if(IsCal == 0){
       fSkimTree->Add(Form("$MJDDATADIR/surfmjd/analysis/skim/DS%d/%s/skimDS%d_%d.root",fDataSet,path.c_str(),fDataSet,fSubSet));
