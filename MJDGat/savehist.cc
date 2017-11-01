@@ -12,13 +12,12 @@ using namespace std;
 
 int main(int argc, char** argv)
 {
-  if(argc != 3 || atoi(argv[1]) == 0) {
-    cout << "Usage: " << argv[0] << " [run] [output name]" << endl;
+  if(argc != 2 || atoi(argv[1]) == 0) {
+    cout << "Usage: " << argv[0] << " [run]" << endl;
     return 1;
   }
 
   Int_t fRun = atoi(argv[1]);
-  string fOutputName = argv[2];
   MJDGat ds(fRun);
 
   //string fDataSet = ds.GetDataSet();
@@ -27,6 +26,6 @@ int main(int argc, char** argv)
   //vector<Int_t> fStr = ds.GetString();
   //vector<Int_t> fDetpos = ds.GetDetPosition();
   //TChain* fMjdTree = ds.GetMJDTree();
-  ds.SaveSubTree(fOutputName);
-  
+  //ds.SaveHisto();
+  ds.SearchEvents();
 }

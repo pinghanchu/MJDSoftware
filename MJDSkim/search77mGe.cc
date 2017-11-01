@@ -11,16 +11,26 @@ using namespace std;
 int main(int argc, char** argv)
 {
   if(argc != 3 ) {
-    cout << "Usage: " << argv[0] << " [dataset] [energy]" << endl;
+    cout << "Usage: " << argv[0] << " [dataset] [subset]" << endl;
     return 1;
   }
   Int_t fDataSet = atoi(argv[1]);
-  Double_t fEnergy = atof(argv[2]);
+  Int_t fSubSet = atoi(argv[2]);
+  Double_t fEnergy = 215;
   Double_t fTime = 52.9;
-  MJDSkim ds(fDataSet,0,0,0);
+  MJDSkim ds(fDataSet,fSubSet,fSubSet,0);
   Int_t fTimems = 53;
-  string fOutputFile = Form("data_%d_%d_%d.txt",fDataSet,(Int_t)fEnergy,fTimems);
-  cout << "Searching candidates..." << "energy is " << fEnergy << "; the delayed time is " <<fTime << endl;
+  string fOutputFile = Form("77mGe_MuonCoin_data_%d_%d_%d.txt",fDataSet,(Int_t)fEnergy,fTimems);
   ds.SearchMuonCoinEvent(fEnergy,fTime,fOutputFile);
+
+  fOutputFile = Form("77mGe_HighEnr_data_%d_%d_%d_%d.txt",fDataSet,fSubSet,(Int_t)fEnergy,fTimems);
+  ds.SearchDelayedHighEnergyEvent(1000,1000,fTime,fOutputFile);
+
+  fOutputFile = Form("77mGe_Multiplicity_data_%d_%d_%d_%d.txt",fDataSet,fSubSet,(Int_t)fEnergy,fTimems);
+  ds.SearchDelayedMultiplicityEvent(fEnergy,10000,fTime,fOutputFile);
+  
   cout << "Searching candidates is done. "<< endl;
+  
+
+  
 }

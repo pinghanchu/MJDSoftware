@@ -27,7 +27,7 @@ int main(int argc, char** argv)
   cout << fDataSet << endl;
   cout << "Energy Screening..." << endl;
   string fOutputFile = Form("data_%d.txt",fRun);
-  ds.SeachPulserChannel(fOutputFile);
+  ds.SearchPulserChannel(fOutputFile);
 
 
 }

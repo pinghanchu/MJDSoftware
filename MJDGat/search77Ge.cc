@@ -20,7 +20,7 @@ int main(int argc, char** argv)
   MJDGat ds(fRun);
   Double_t fQ = 10000;
   Int_t fTimems = (Int_t) 114;
-  string fOutputFile = Form("data_%d_%d_%d.txt",fRun,(Int_t)fEnergy,fTimems);
+  string fOutputFile = Form("data_77Ge_%d_%d",fRun,(Int_t)fEnergy);
   cout << "Searching candidates..." << "energy is " << fEnergy << "; the delayed time is " <<fTime << endl;
   ds.SearchDelayedEvent(fEnergy,fQ,fTime,fOutputFile);
   cout << "Searching candidates is done. "<< endl;

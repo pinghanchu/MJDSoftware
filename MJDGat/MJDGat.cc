@@ -112,7 +112,7 @@ MJDGat::MJDGat(Int_t Run) : fDS(Run,Run)
 }
 
 
-void MJDGat::SeachPulserChannel(string fOutputFile){
+void MJDGat::SearchPulserChannel(string fOutputFile){
   //////////////////////////////////////
   //fEnr1 : the second gamma energy
   //fEnr2 : the first Q value
@@ -161,27 +161,27 @@ void MJDGat::SearchDelayedEvent(Double_t fEnr1, Double_t fEnr2, Double_t fTime, 
   //////////////////////////////////////
   map<int,int> detid;
   for(size_t i=0; i<fChannel.size(); i++) detid[fChannel.at(i)]= i;
-  ofstream fout(Form("%s",fOutputFile.c_str()));
+  ofstream fout(Form("%s.csv",fOutputFile.c_str()));
   fout.precision(15);
   vector<Int_t> List1;
   vector<Int_t> Chan1;
   vector<Double_t> Enr1;
   for(size_t i=0;i<fEntries;i++){
     fMjdTree->GetEntry(i);
-    //if((fRun < 45000000 || fRun>50000000) && fMTEventDC1Bits == 0){
-    for(size_t j=0;j<fMTChannel->size();j++){	
-      Int_t chan1 = fMTChannel->at(j);
-      Double_t enr1 = fMTTrapENFCal->at(j);
-      Int_t index1 = detid[chan1];
-      //cout << i << " " << chan1 << " " << enr1 << endl;
-      if(abs(enr1-fEnr1)<20 && chan1%2==0 && fGoodBad.at(index1) == 1){
-	List1.push_back(i);
-	Chan1.push_back(chan1);
-	Enr1.push_back(enr1);
+    if((fRun < 45000000 || fRun>50000000) && fMTEventDC1Bits == 0){
+      for(size_t j=0;j<fMTChannel->size();j++){	
+	Int_t chan1 = fMTChannel->at(j);
+	Double_t enr1 = fMTTrapENFCal->at(j);
+	Int_t index1 = detid[chan1];
 	//cout << i << " " << chan1 << " " << enr1 << endl;
+	if(abs(enr1-fEnr1)<20 && chan1%2==0 && fGoodBad.at(index1) == 1){
+	  List1.push_back(i);
+	  Chan1.push_back(chan1);
+	  Enr1.push_back(enr1);
+	  //cout << i << " " << chan1 << " " << enr1 << endl;
+	}
       }
     }
-    //}
   }
 
   vector<Int_t> List2;
@@ -195,13 +195,13 @@ void MJDGat::SearchDelayedEvent(Double_t fEnr1, Double_t fEnr2, Double_t fTime, 
   if((Int_t)List1.size()>0){
     for(size_t i=0;i<List1.size();i++){
       fMjdTree->GetEntry(List1.at(i));
-      Double_t time1 = fMTTimeInfo->globalTime/1e8;
+      Double_t time1 = fMTTimeInfo->globalTime;
       Double_t time2 = time1;
       Int_t ii = List1.at(i)-1;
-      while(abs(time1-time2)<fTime*20 && ii>0){
+      while(abs(time1-time2)<fTime*30 && ii>0){
 	fMjdTree->GetEntry(ii);
-	time2 = fMTTimeInfo->globalTime/1e8;
-	//if((fRun < 45000000 || fRun>50000000) && fMTEventDC1Bits == 0){	  
+	time2 = fMTTimeInfo->globalTime;
+	if((fRun < 45000000 || fRun>50000000) && fMTEventDC1Bits == 0){	  
 	  for(size_t j=0;j<fMTChannel->size();j++){
 	    Int_t chan2 = fMTChannel->at(j);
 	    Double_t enr2 = fMTTrapENFCal->at(j);	    
@@ -217,15 +217,15 @@ void MJDGat::SearchDelayedEvent(Double_t fEnr1, Double_t fEnr2, Double_t fTime, 
 	      Time3.push_back(time2);
 	    }
 	  }
-	  //}
+	}
 	ii--;
       }
     }
   }
 
   for(size_t i=0;i<List2.size();i++){
-    fout << fRun << " " << List2.at(i) << " " << Chan2.at(i) << " " << Enr2.at(i) << " " <<Time2.at(i) << " "
-	 << List3.at(i) << " " << Chan3.at(i) << " " << Enr3.at(i) << " " << Time3.at(i)<<endl;
+    fout << fRun << "," << List2.at(i) << "," << Chan2.at(i) << "," << Enr2.at(i) << "," <<Time2.at(i) << ","
+	 << List3.at(i) << "," << Chan3.at(i) << "," << Enr3.at(i) << "," << Time3.at(i)<<endl;
   }
 }
 
@@ -655,3 +655,139 @@ Int_t MJDGat::PulserCount(vector<Int_t>* PulserChannel){
 
   return pulsernum;
 }
+
+void MJDGat::SaveHisto(){
+  TFile *file = TFile::Open(Form("hist_%d.root",fRun),"recreate");
+  TH1D *h1 = new TH1D("h1","",30000,0,3000);
+  TH1D *h2 = new TH1D("h2","",30000,0,3000);
+  TH1D *h3 = new TH1D("h3","",70000,0,7000);
+  TH1D *h4 = new TH1D("h4","",100000,0,10000);
+  TH2D *h5 = new TH2D("h5","",3000,0,3000,3000,0,3000);
+  TH2D *h6 = new TH2D("h6","",3000,0,3000,3000,0,3000);
+
+  vector<Double_t> Enr;
+  for(size_t i=0;i<fEntries;i++){
+    fMjdTree->GetEntry(i);
+    if(fMTEventDC1Bits == 0){
+      Double_t sum = 0;
+      Int_t count = 0;
+      Enr.clear();
+      for(size_t j=0;j<fMTChannel->size();j++){
+	Int_t chan1 = fMTChannel->at(j);
+	Double_t enr1 = fMTTrapENFCal->at(j);
+	if(enr1>10 && enr1 <3300 && chan1%2==0){
+	  sum = sum + enr1;
+	  count =count+1;
+	  Enr.push_back(enr1);
+	}
+      }
+
+      if(count==2){
+	h3->Fill(sum);
+	h5->Fill(Enr.at(0),Enr.at(1));
+	for(size_t j=0;j<fMTChannel->size();j++){
+	  Int_t chan1 = fMTChannel->at(j);
+	  Double_t enr1 = fMTTrapENFCal->at(j);
+	  if(enr1>10 && enr1 <3300 && chan1%2==0){
+	    h1->Fill(enr1);
+	  }
+	}
+      }
+      
+      if(count>2){
+        h4->Fill(sum);
+	for(int i1 = 0;i1<Enr.size();i1++){
+	  for(int i2 = i1+1;i2<Enr.size();i2++){
+	    h6->Fill(Enr.at(i1),Enr.at(i2));
+	  }
+	}
+        for(size_t j=0;j<fMTChannel->size();j++){
+          Int_t chan1 = fMTChannel->at(j);
+          Double_t enr1 = fMTTrapENFCal->at(j);
+          if(enr1>10 && enr1 <3300 && chan1%2==0){
+            h2->Fill(enr1);
+          }
+        }
+      }      
+    }
+  }
+  file->Write();
+}
+
+void MJDGat::SearchEvents(){
+  TFile *file = TFile::Open(Form("hist_%d.root",fRun),"recreate");
+  TH1D *h1 = new TH1D("h1","",30000,0,3000);
+  vector<Double_t> Enr;
+  for(size_t i=0;i<fEntries;i++){
+    fMjdTree->GetEntry(i);
+    if(fMTEventDC1Bits == 0){
+      Double_t sum = 0;
+      Int_t count = 0;
+      Int_t count1 = 0;
+      Int_t count2 = 0;
+      vector<Int_t> chan1173;
+      vector<Int_t> chan1332;
+      chan1173.clear();
+      chan1332.clear();
+      Enr.clear();
+      for(size_t j=0;j<fMTChannel->size();j++){
+	Int_t chan1 = fMTChannel->at(j);
+	Double_t enr1 = fMTTrapENFCal->at(j);
+	if(chan1%2==0 && enr1>5 && enr1 < 3300){
+	  count++;
+	}
+	if(abs(enr1-1173)<2 && chan1%2==0){
+	  chan1173.push_back(chan1);
+	  count1++;
+	}
+      	if(abs(enr1-1332)<2 && chan1%2==0){
+	  chan1332.push_back(chan1);
+	  count2++;
+	}
+      }
+      if(count1>0 && count2>0){
+	if(count>2){
+	  for(size_t j=0;j<fMTChannel->size();j++){
+	    Int_t chan1 = fMTChannel->at(j);
+	    Double_t enr1 = fMTTrapENFCal->at(j);
+	    if(chan1!=chan1173.at(0) && chan1!=chan1332.at(0)  && chan1%2==0 && enr1 < 3300){
+	      h1->Fill(enr1);
+	    }
+	  }
+	}else if(count==2){
+	  h1->Fill(0);
+	}
+      }
+    }
+  }
+  file->Write();
+}
+
+
+void MJDGat::SearchPulserEvents(){
+  ofstream fout(Form("pulser_%d.csv",fRun));
+  for(size_t i=0;i<fEntries;i++){
+    fMjdTree->GetEntry(i);
+    if(fMTEventDC1Bits >0 ){
+      for(size_t j=0;j<fMTChannel->size();j++){
+	Int_t chan1 = fMTChannel->at(j);
+	Double_t enr1 = fMTTrapENFCal->at(j);
+	if(enr1>1000 && enr1 <3000){
+	  fout << fRun << "," << i << "," << chan1 << "," << enr1 << endl;
+	}
+      }
+    }
+  }
+}
+
+
+TH1D* MJDGat::FillHisto(TChain* mTree, string InputParaName, string OutputParaName,string CutName, Int_t Bin, Double_t Low, Double_t Up){
+  TH1D *h = new TH1D(Form("%s", OutputParaName.c_str()),"", Bin, Low, Up);
+  TCut cut1 = Form("%s",CutName.c_str());
+  //TCanvas *c1 = new TCanvas("c1");
+  mTree->Draw(Form("%s>>%s",InputParaName.c_str(),OutputParaName.c_str()),cut1);
+  return h;
+  cout << "histogram is generated" << endl;
+}
+
+

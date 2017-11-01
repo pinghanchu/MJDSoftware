@@ -36,7 +36,12 @@ public:
   virtual inline vector<Int_t> GetString(){ return fString; }
   virtual inline vector<Int_t> GetDetPosition(){ return fDetector; }
   virtual inline vector<string> GetDetectorName(){ return fDetectorName;}
+  virtual void FindEvent(Int_t List, vector<Int_t>* Channel, vector<Double_t>* Energy);
+  virtual void FindDelayedEvent(Int_t List, Int_t Chan, Double_t fTime, string fOutputFile);   
   virtual void SearchDelayedEvent(Double_t fEnr1, Double_t fEnr2, Double_t fTime, string fOutputFile);
+  virtual void SearchDelayedHighEnergyEvent(Double_t fEnr1, Double_t fEnr2, Double_t fTime, string fOutputFile);
+  virtual void SearchDelayedMultiplicityEvent(Double_t fEnr1, Double_t fEnr2, Double_t fTime, string fOutputFile);
+
   virtual void SearchMuonCoinEvent(Double_t fEnr, Double_t fTime, string fOutputFile);
   virtual void SearchEnergyEvent(Double_t fEnr1, Double_t fEnrWindow, string fOutputFile);
   virtual TH1D* GetWaveform(Int_t fR,Int_t fEntry, Int_t fChan,Double_t fEnr);
@@ -50,7 +55,7 @@ public:
   virtual vector<Int_t> Sort(vector<Double_t> X);
   virtual vector<Int_t> Clean(vector<Double_t> X); 
   virtual void IsPileUpTag(Int_t fList, vector<Int_t>* IsPileUp, vector<Double_t>* Ratio, 
-			   vector<Double_t>* DeltaT, vector<Double_t>* AE,vector<Double_t>* Cur);
+			   vector<Double_t>* DeltaT);
   virtual void PileUpTree(const char* pathName);
   virtual void TimeDiffTree(const char* pathName);
   virtual TH1D* FillHisto(TChain* mTree, string InputParaName, string OutputParaName,string CutName, Int_t Bin, Double_t Low, Double_t Up);

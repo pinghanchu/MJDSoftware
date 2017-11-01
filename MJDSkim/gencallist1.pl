@@ -23,20 +23,7 @@ while(my $line = <$fin>) {
 }
 my @sort_subset = sort { $a <=> $b } @subset;
 my $size = @subset;
-my @startrun = ();
-my @endrun = ();
-my $starttemp =$sort_subset[0];
-push (@startrun,$sort_subset[0]);
+
 for(my $i=1;$i<$size;$i++){
-    #print $sort_subset[$i]," ",$starttemp,"\n";    
-    if(($sort_subset[$i]-$starttemp)>1){
-	push(@startrun,$sort_subset[$i]);
-	push(@endrun,$sort_subset[$i-1]);
-    }
-    $starttemp = $sort_subset[$i];
-}
-push(@endrun,$sort_subset[$size-1]);
-$size = @startrun;
-for(my $i=0;$i<$size;$i++){
-    print $startrun[$i]," ",$endrun[$i],"\n";
+    print $sort_subset[$i],"\n";
 }

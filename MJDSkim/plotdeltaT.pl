@@ -7,4 +7,3 @@ my $wfdata = "./data/wf_*_".$enr."_".$window.".txt";
 my $wffile = "./data/wf_".$enr."_".$window.".txt";
 system("cat $wfdata > $wffile"); 
 system("$plotdeltaT $enr $window");
-

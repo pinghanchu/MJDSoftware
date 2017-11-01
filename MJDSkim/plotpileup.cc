@@ -24,7 +24,6 @@ int main(int argc, char** argv)
   //gROOT->SetStyle("Plain");
   gStyle->SetOptStat(0);  
   
-  TChain* fSkimTree = new TChain("skimTree");
   vector<Int_t> DataSet;
   vector<Int_t> SubSet;
   for(int i = 0;i<6;i++){
@@ -37,8 +36,10 @@ int main(int argc, char** argv)
   SubSet.push_back(18);
   SubSet.push_back(112);
 
-  string path = "GAT-v01-06-125-gd9332b6";
+  string path = "GAT-v01-07";
+  /*
 
+  TChain* fSkimTree = new TChain("skimTree");
 
   if(fStartSubSet != fEndSubSet && fEndSubSet!=0){
     for(Int_t i=fStartSubSet;i<=fEndSubSet;i++){
@@ -51,8 +52,9 @@ int main(int argc, char** argv)
       }
     }
   }
-  /*
+    
   c1->SetLogy();
+
   TH1D *t1 = new TH1D("t1","",1000,-10,10);
   fSkimTree->Draw("trapETailMin>>t1");
   t1->SetTitle(";trapETailMin;");
@@ -60,7 +62,7 @@ int main(int argc, char** argv)
   c1->Print("trapETailMin.pdf");
 
   TH1D *t2 = new TH1D("t2","",600,-0.3,0.3);
-  fSkimTree->Draw("trapETailMin/trapENFCal>>t2");
+  fSkimTree->Draw("trapETailMin/trapENFCalC>>t2");
   t2->SetTitle(";trapETailMin/Energy;");
   t2->Draw();
   c1->Print("trapETailMin_Enr.pdf");
@@ -76,12 +78,12 @@ int main(int argc, char** argv)
   t22->SetTitle(";trapETailMin/Energy;");
   t22->Draw();
   c1->Print("trapETailMin_Enr_Zoom_In_2.pdf");
-  */
+  
   c1->SetLogy(0);
   
   
   c1->SetLogz();
-  /*
+  
   TH2D *t3 = new TH2D("t3","",300,0,3000,1200,-2,10);
   fSkimTree->Draw("trapETailMin:trapENFCal>>t3");
   t3->SetTitle(";Energy(keV);trapETailMin");
@@ -92,21 +94,21 @@ int main(int argc, char** argv)
   t31->SetTitle(";Energy(keV);trapETailMin");
   t31->Draw();
   c1->Print("Energy_trapETailMin_Zoom_In.pdf");
-  */
-  /*
+  
+  
   TH2D *t4 = new TH2D("t4","",300,0,3000,600,-0.3,0.3);
   fSkimTree->Draw("trapETailMin/trapENFCal:trapENFCal>>t4");
   t4->SetTitle(";Energy(keV);trapETailMin/Enr");
   t4->Draw();
   c1->Print("Energy_trapETailMin_Enr.pdf");
-  */
-  /*
-  TH1D *h1 = new TH1D("h1","",30000,0,30000);
-  fSkimTree->Draw("run>>h1","dcr99<0.006 && dcr99>0.004 && trapENFCal< 60 && trapENFCal>40");
-  h1->Draw();
-  c1->Print("h1.pdf");
-  */
-  /*
+  
+  
+  //TH1D *h1 = new TH1D("h1","",30000,0,30000);
+  //fSkimTree->Draw("run>>h1","dcr99<0.006 && dcr99>0.004 && trapENFCal< 60 && trapENFCal>40");
+  //h1->Draw();
+  //c1->Print("h1.pdf");
+  
+  
   //////AvsE
   c1->SetLogy();
   TH1D *a1 = new TH1D("a1","AvsE",60000,-3000,3000);
@@ -124,18 +126,15 @@ int main(int argc, char** argv)
   a2->Draw("COLZ");
   c1->Print("Energy_AvsE.pdf");
   c1->Update();
-  */
-  /*
+  
+  
   TH2D *a3 = new TH2D("a3","AvsE vs Enr",1000,0,100,3500,-500,3000);
   fSkimTree->Draw("avse:trapENFCal>>a3");
   a3->SetTitle(";Energy(keV);AvsE");
   a3->Draw("COLZ");
   c1->Print("Energy_AvsE_Zoom_In.pdf");
   c1->Update();
-  */
-  /*
-  c1->SetLogz();
-  
+    
   TH2D *ad1 = new TH2D("ad1","DCR vs AvsE",5000,-2000,3000,400,-0.2,0.2);
   fSkimTree->Draw("dcr99:avse>>ad1");
   ad1->SetTitle(";AvsE;DCR");
@@ -151,27 +150,38 @@ int main(int argc, char** argv)
   ad2->Draw("COLZ");
   c1->Print("AvsE_DCR_Zoom_In.pdf");
   c1->Update();
-  */
-  TH2D *ad2 = new TH2D("ad2","DCR vs AvsE",4500,500,5000,600,-0.001,0.005);
+  
+  TH2D *ad3 = new TH2D("ad3","DCR vs AvsE",4500,500,5000,600,-0.001,0.005);
   //fSkimTree->Draw("dcr99:avse>>ad2","trapENFCal>48 && trapENFCal<72");
-  fSkimTree->Draw("dcr99:avse>>ad2");
-  ad2->SetTitle(";AvsE;DCR");
-  ad2->Draw("COLZ");
+  fSkimTree->Draw("dcr99:avse>>ad3");
+  ad3->SetTitle(";AvsE;DCR");
+  ad3->Draw("COLZ");
   c1->Print("AvsE_DCR_High.pdf");
 
 
 
-  /*
+  
   ////DCR
   c1->SetLogz();
-  //TH2D *d2 = new TH2D("d2","DCR vs Enr",240,48,72,300,-0.01,0.02);
-  TH2D *d2 = new TH2D("d2","DCR vs Enr",280,200,3000,300,-0.01,0.02);
+  TH2D *d2 = new TH2D("d2","DCR vs Enr",240,48,72,300,-0.01,0.02);
+  //TH2D *d2 = new TH2D("d2","DCR vs Enr",280,200,3000,300,-0.01,0.02);
 
   fSkimTree->Draw("dcr99:trapENFCal>>d2");
   d2->SetTitle(";Energy(keV);DCR");
   d2->Draw("COLZ");
   c1->Print("Energy_DCR_ROI.pdf");
   c1->Update();
+
+  TH2D *d21 = new TH2D("d21","DCR vs Enr",240,200,500,300,-0.01,0.02);
+  //TH2D *d2 = new TH2D("d2","DCR vs Enr",280,200,3000,300,-0.01,0.02);
+
+  fSkimTree->Draw("dcr99:trapENFCal>>d21");
+  d21->SetTitle(";Energy(keV);DCR");
+  d21->Draw("COLZ");
+  c1->Print("Energy_DCR_ROI_2.pdf");
+  c1->Update();
+
+
 
   c1->SetLogz();
   TH2D *d3 = new TH2D("d3","DCR vs Enr",280,200,3000,1000,-0.05,0.05);
@@ -205,35 +215,33 @@ int main(int argc, char** argv)
   c1->Print("DCR_EnergyCut_ROI_2.pdf");
   c1->Update();
 
-
-
   c1->SetLogy(0);
   c1->SetLogz(0);
 
   */
 
   ////////////////////////
-  /*
+  
   TChain* fPileUpTree = new TChain("pileupTree");
   //TChain* fTimeDiffTree=new TChain("timediffTree");
   if(fStartSubSet != fEndSubSet && fEndSubSet!=0){
     for(Int_t i=fStartSubSet;i<=fEndSubSet;i++){
-      fPileUpTree->Add(Form("./pileup_%d_%d.root",fDataSet,i));
+      fPileUpTree->Add(Form("./root/pileup_%d_%d.root",fDataSet,i));
       //fTimeDiffTree->Add(Form("./timediff_%d_%d.root",fDataSet,i));
     }
   }else{
   
     for(size_t i=0;i<DataSet.size();i++){
       for(Int_t j=0;j<=SubSet.at(i);j++){
-	fPileUpTree->Add(Form("./pileup_%d_%d.root",DataSet.at(i),j));
+	fPileUpTree->Add(Form("./root/pileup_%d_%d.root",DataSet.at(i),j));
 	//fTimeDiffTree->Add(Form("./timediff_%d_%d.root",DataSet.at(i),j));
       }
     }
   }
 
   
-  fPileUpTree->SetBranchStatus("*",1);
-
+  //fPileUpTree->SetBranchStatus("*",1);
+  /*
   Int_t fRun;
   Int_t fEvent;
   vector<Int_t>* fChannel = NULL;
@@ -254,6 +262,7 @@ int main(int argc, char** argv)
   fPileUpTree->SetBranchAddress("PileUpRatio",&fRatio);
   fPileUpTree->SetBranchAddress("PileUpDeltaT",&fDeltaT);
   //fPileUpTree->SetBranchAddress("TimeDiff",&fTimeDiff);
+
   ofstream fout("wf.txt");
   for(Int_t i = 0;i<fPileUpTree->GetEntries();i++){
     fPileUpTree->GetEntry(i);
@@ -280,7 +289,7 @@ int main(int argc, char** argv)
   }
 
   */
-  /*  
+  /*
   TH2D *h1 = new TH2D("h1","Energy vs Ratio",300,0,3000,30,0,30);
   TH2D *h2 = new TH2D("h2","Energy vs DeltaT",300,0,3000,160,-8000,8000);
   TH2D *h3 = new TH2D("h3","Energy vs DCR",300,0,3000,1000,-0.5,0.5);
@@ -293,8 +302,7 @@ int main(int argc, char** argv)
   TH1D *g2 = new TH1D("g2","DeltaT",1600,-8000,8000);
   TH1D *g3 = new TH1D("g3","DCR",4000,-0.002,0.002);  
   TH1D *g4 = new TH1D("g4","AvsE",6000,-400,200);
-*/
-  /*
+
  //Energy vs PileUpRatio
   fPileUpTree->Draw("PileUpRatio:Energy >> h1","Energy>40 && Energy<12000 && Channel%2==0");
   h1->SetTitle(";Energy(keV);Ratio");
@@ -330,18 +338,21 @@ int main(int argc, char** argv)
   h5->Draw("COLZ");
   c1->Print("PileUpRatio_PileUpDeltaT.pdf");
   c1->Update();
-
+  */
   //PileUpRatio  vs PileUpDeltaT
+  TH2D *h6 = new TH2D("h6","DeltaT vs Ratio",800,0,8000,4,1.5,6);
+
   c1->SetLogz(0);
   c1->SetLogy(0);
-  fPileUpTree->Draw("PileUpRatio:PileUpDeltaT >> h6","abs(Energy-67)<20 && Channel%2==0 && PileUpRatio<5 && PileUpRatio>3 && abs(DCR)<0.02 && PileUpDeltaT>250");
+  //fPileUpTree->Draw("PileUpRatio:PileUpDeltaT >> h6","abs(Energy-67)<20 && Channel%2==0 && PileUpRatio<5 && PileUpRatio>3 && abs(DCR)<0.02 && PileUpDeltaT>250");
+  fPileUpTree->Draw("PileUpRatio:PileUpDeltaT >> h6","Channel%2==0 && PileUpRatio<6 && PileUpRatio>1.5 && PileUpDeltaT>1000");
   h6->SetTitle(";#Delta T(ns);Ratio");
   h6->Draw("COLZ");
   c1->Print("PileUpRatio_PileUpDeltaT_Cut.pdf");
   c1->Update();
-*/
-  /*
   c1->SetLogy();
+
+  /*
   //PileUpRatio
   fPileUpTree->Draw("PileUpRatio>>g1","Energy>40 && Energy<12000 && Channel%2==0");
   g1->SetTitle(";Ratio;");
@@ -369,8 +380,8 @@ int main(int argc, char** argv)
   g4->Draw();
   c1->Print("PileUpAvsE.pdf");
   c1->Update();
-*/
 
+  */
 
   /*
   fTimeDiffTree->Draw("TimeDiff>>h9");

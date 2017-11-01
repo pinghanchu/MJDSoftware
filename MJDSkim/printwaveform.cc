@@ -37,10 +37,11 @@ int main(int argc, char** argv)
   hFFT->Draw();
   c1->Print(Form("waveformFFT_%d_%d_%d.pdf",fRun,fEntry,fChan));
   c1->SetLogy(0);
+  /*
   TH1D *htrap =  ds.TrapezoidalFilter(h, 400,250,7000);
   htrap->Draw();
   c1->Print(Form("waveformTrap_%d_%d_%d.pdf",fRun,fEntry,fChan));
-
+  */
   /*
 
   //h3->SetName(Form("waveform1_%d_%d_%d",fRun,fEntry,fChan));

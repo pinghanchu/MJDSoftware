@@ -44,7 +44,7 @@ public:
   virtual inline MJTChannelMap* GetMap(){ return fMap; }
   virtual inline Double_t GetStartTime(){return fMTStartTime;}
   virtual inline Double_t GetStopTime(){return fMTStopTime;}
-  virtual void SeachPulserChannel(string fOutputFile);
+  virtual void SearchPulserChannel(string fOutputFile);
   virtual void SearchDelayedEvent(Double_t fEnr1, Double_t fEnr2, Double_t fTime, string fOutputFile);
   virtual void SearchEnergyEvent(Double_t fEnr1, Double_t fEnrWindow, string fOutputFile);
   virtual TH1D* GetWaveform(Int_t fR,Int_t fEntry, Int_t fChan,Double_t fEnr);
@@ -60,7 +60,12 @@ public:
   virtual void IsPileUpTag(Int_t fEvent, vector<Int_t>* IsPileUp,vector<Double_t>* Ratio, vector<Double_t>* DeltaT, vector<Double_t>* AE);
   virtual void PileUpTree(const char* pathName);
   virtual Int_t PulserCount(vector<Int_t>* PulserChannel);
- 
+  virtual void SaveHisto();
+  virtual void SearchEvents();
+  virtual void SearchPulserEvents();
+  virtual TH1D* FillHisto(TChain* mTree, string InputParaName, string OutputParaName,string CutName, Int_t Bin, Double_t Low, Double_t Up);
+
+
 protected:
   GATAutoCal fDS;
   TChain* fMjdTree;

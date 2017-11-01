@@ -6,25 +6,25 @@ if( $numArgs < 1){
 }elsif( $numArgs >1){
     print "You have too many arguments\n";
 }
-my $scriptpath = "/global/projecta/projectdirs/majorana/users/pchu/ana/WORK/MJDSkim/";
+my $scriptpath = "/global/projecta/projectdirs/majorana/users/pchu/git/MJDSoftware/MJDSkim/";
 my $search = $scriptpath."pileuptag";
 print $search,"\n";
 my $dataset = $ARGV[0];
 my $subset= 0;
 if($dataset == 0){
-    $subset = 77;
+    $subset = 75;
 }elsif( $dataset == 1){
-    $subset = 52;
+    $subset = 51;
 }elsif( $dataset == 2){
-    $subset = 8;
+    $subset = 7;
 }elsif( $dataset == 3){
-    $subset = 25;
+    $subset = 24;
 }elsif( $dataset == 4){
-    $subset = 23;
+    $subset = 18;
 }elsif( $dataset == 5){
-    $subset = 113;
+    $subset = 112;
 }
-for(my $i=0;$i<$subset;$i++){
+for(my $i=0;$i<=$subset;$i++){
     my $file = $dataset."_".$i;
     my $app  = "pileup_".$file.".csh";
     open(my $fh, ">", $app) or die "cannot open";#

@@ -42,7 +42,7 @@ int main(int argc, char** argv)
   vector<Int_t> channel = ps.GetChannel();
   //vector<Int_t> goodbad = ps.GetGoodBad();
   TChain *skimTree = new TChain("skimTree");
-  string path = "GAT-v01-06-125-gd9332b6";
+  string path = "GAT-v01-07";
 
   for(size_t i = 0;i<StartRun.size();i++){
     for(Int_t j = StartRun.at(i);j <= EndRun.at(i);j++){
